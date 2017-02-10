@@ -54,8 +54,7 @@ var get_orly = function (sr, sort, channel) {
       bot.postMessageToChannel(channel, '*' + title + '*\n' + img)
       console.log('sent ' + img + '!')
       seen.push(img)
-      fs.writeFile('seen', seen.join(','), function (e) { 
-      })
+      fs.writeFile('seen', seen.join(','))
       console.log('saved! ' + seen.length)
     }
   })
