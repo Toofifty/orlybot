@@ -4,6 +4,7 @@ var Bot = require('slackbots')
 var request = require('request')
 var util = require('util')
 var fs = require('fs')
+var decode = require('decode-html')
 var channel = 'coffee'
 var current_answer = null
 var current_answer_text = ''
@@ -57,7 +58,7 @@ var get_orly = function (sr, sort) {
         img = post['url']
         title = post['title']
       }
-      bot.postMessageToChannel(channel, '*' + title + '*\n' + img)
+      bot.postMessageToChannel(channel, decode('*' + title + '*\n' + img))
       console.log('sent ' + img + '!')
       seen.push(img)
       fs.writeFile('seen', seen.join(','), {}, (err) => {
@@ -113,15 +114,15 @@ bot.on('message', function (message) {
         } else {
           b = JSON.parse(b)
           const q = b.results[0]
-          bot.postMessageToChannel(channel, q.category + ': ' + q.question)
+          bot.postMessageToChannel(channel, decode(q.category + ': ' + decode))
           const ri = Math.floor(Math.random() * 4)
           let answers = q.incorrect_answers
           answers.splice(ri, 0, q.correct_answer)
           current_answer = ri + 1
-          current_answer_text = '' + q.correct_answer
+          current_answer_text = decode('' + q.correct_answer)
           wrong_answers = q.incorrect_answers.map(v => v.toLowerCase())
           setTimeout(() => {
-            bot.postMessageToChannel(channel, answers.map((a, i) => `${i+1}. ${a}`).join('\n'))
+            bot.postMessageToChannel(channel, decode(answers.map((a, i) => `${i+1}. ${a}`).join('\n')))
           }, 5000)
         }
       })
@@ -130,9 +131,9 @@ bot.on('message', function (message) {
         if (e) console.error(e)
         else {
           b = JSON.parse(b)
-          bot.postMessageToChannel(channel, b.setup)
+          bot.postMessageToChannel(channel, decode(b.setup))
           setTimeout(() => {
-            bot.postMessageToChannel(channel, b.punchline)
+            bot.postMessageToChannel(channel, decode(b.punchline))
           }, 10000)
         }
       })
