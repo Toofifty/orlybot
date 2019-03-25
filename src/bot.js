@@ -4,6 +4,10 @@ var Bot = require('slackbots')
 var request = require('request')
 var util = require('util')
 var fs = require('fs')
+var channel = 'coffee'
+var current_answer = null
+var current_answer_text = ''
+var wrong_answers = []
 
 var settings = {
   token: 'xoxb-138434470642-NZggQ2cApB76caL5KHKM3dkv',
@@ -13,6 +17,17 @@ var settings = {
 var bot = new Bot(settings)
 var seen = []
 
+var users = []
+
+var get_user = (id) => {
+  var user = users.filter(user => user.id === id)
+  if (user.length > 0) {
+    user = user[0]
+    return user.profile.display_name
+  }
+  return 'null'
+}
+
 fs.readFile('seen', 'utf8', function (e, d) {
   if (e)
     fs.writeFile('seen', '', function (e) {
@@ -21,12 +36,10 @@ fs.readFile('seen', 'utf8', function (e, d) {
         return
       }
     })
-  console.log(d)
   seen = d.split(',')
 })
 
-var get_orly = function (sr, sort, channel) {
-  channel = 'random'
+var get_orly = function (sr, sort) {
   console.log('making request!')
   var t = sort == 'top' ? '?t=all' : ''
   request({
@@ -35,13 +48,6 @@ var get_orly = function (sr, sort, channel) {
   }, function (e, r, b) {
     if (e) console.log(e)
     else {
-      if (!b.hasOwnProperty('data')) {
-        console.log('errored! gonna try again in 2 min!')
-        setTimeout(function () {
-          get_orly(channel)
-        }, 120000)
-        return
-      }
       var post = b['data']['children'][1]['data']
       var img = post['url']
       var title = post['title']
@@ -54,7 +60,9 @@ var get_orly = function (sr, sort, channel) {
       bot.postMessageToChannel(channel, '*' + title + '*\n' + img)
       console.log('sent ' + img + '!')
       seen.push(img)
-      fs.writeFile('seen', seen.join(','))
+      fs.writeFile('seen', seen.join(','), {}, (err) => {
+        console.error(err)
+      })
       console.log('saved! ' + seen.length)
     }
   })
@@ -63,18 +71,82 @@ var get_orly = function (sr, sort, channel) {
 // bot.on('start', get_orly)
 
 bot.on('message', function (message) {
-  console.log('message!', message.text)
-  if (message.type == 'message' && message.text !== undefined && message.text.toLowerCase().indexOf('orly') > -1) {
-    var m = message.text.toLowerCase().split(' ')
-    console.log('to me!')
-    if (m.length > 3) {
-      get_orly(m[1], m[2], m[3])
-    } if (m.length > 2) {
-      get_orly(m[1], m[2])
-    } else if (m.length > 1) {
-      get_orly(m[1], 'hot', message.channel)
+  if (users.length === 0) {
+    users = bot.getUsers()._value.members
+  }
+  console.log(message)
+  if (message.type == 'message' && message.text !== undefined && message.username !== 'orly') {
+    if (message.text.toLowerCase().indexOf('orly') > -1) {
+      var m = message.text.toLowerCase().split(' ')
+      console.log('to me!')
+      if (m.length > 3) {
+        get_orly(m[1], m[2], m[3])
+      } if (m.length > 2) {
+        get_orly(m[1], m[2])
+      } else if (m.length > 1) {
+        get_orly(m[1], 'hot', message.channel)
+      } else {
+        get_orly('orlybooks', 'hot', message.channel)
+      }
+    } else if (message.text.toLowerCase().indexOf('trivia') === 0) {
+      if (current_answer !== null) {
+        var m = message.text.toLowerCase().split(' ')
+        if (m.length > 1 && m[1].toLowerCase() === 'cancel') {
+          bot.postMessageToChannel(channel, 'Trivia question cancelled')
+          current_answer = null
+          current_answer_text = ''
+          wrong_answers = []
+          return
+        } else {
+          bot.postMessageToChannel(channel, 'A question has already been asked, answer that first')
+          return
+        }
+      }
+      var url = 'https://opentdb.com/api.php?amount=1'
+      var m = message.text.toLowerCase().split(' ')
+      if (m.length > 1) {
+        url = url + '&difficulty=' + m[1]
+      }
+      request('https://opentdb.com/api.php?amount=1', function (e, r, b) {
+        if (e) {
+          console.error(e)
+        } else {
+          b = JSON.parse(b)
+          const q = b.results[0]
+          bot.postMessageToChannel(channel, q.category + ': ' + q.question)
+          const ri = Math.floor(Math.random() * 4)
+          let answers = q.incorrect_answers
+          answers.splice(ri, 0, q.correct_answer)
+          current_answer = ri + 1
+          current_answer_text = '' + q.correct_answer
+          wrong_answers = q.incorrect_answers.map(v => v.toLowerCase())
+          setTimeout(() => {
+            bot.postMessageToChannel(channel, answers.map((a, i) => `${i+1}. ${a}`).join('\n'))
+          }, 5000)
+        }
+      })
+    } else if (message.text.toLowerCase().includes('joke')) {
+      request('https://official-joke-api.appspot.com/random_joke', function (e, r, b) {
+        if (e) console.error(e)
+        else {
+          b = JSON.parse(b)
+          bot.postMessageToChannel(channel, b.setup)
+          setTimeout(() => {
+            bot.postMessageToChannel(channel, b.punchline)
+          }, 10000)
+        }
+      })
+    } else if (message.text.toLowerCase().indexOf('test') === 0) {
+      console.log(bot.getUsers()._value.members)
     } else {
-      get_orly('orlybooks', 'hot', message.channel)
+      if (message.text === current_answer_text.toLowerCase()) {
+        bot.postMessageToChannel(channel, `You got it ${get_user(message.user)}!`)
+        current_answer = null
+        current_answer_text = ''
+        wrong_answers = []
+      } else if (wrong_answers.includes(message.text)) {
+        bot.postMessageToChannel(channel, `${get_user(message.user)} - nope!`)
+      }
     }
   }
 })
