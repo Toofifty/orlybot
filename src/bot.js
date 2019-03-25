@@ -114,7 +114,7 @@ bot.on('message', function (message) {
         } else {
           b = JSON.parse(b)
           const q = b.results[0]
-          bot.postMessageToChannel(channel, decode(q.category + ': ' + decode))
+          bot.postMessageToChannel(channel, decode(q.category + ': ' + q.question))
           const ri = Math.floor(Math.random() * 4)
           let answers = q.incorrect_answers
           answers.splice(ri, 0, q.correct_answer)
