@@ -126,6 +126,12 @@ bot.on('message', function (message) {
           }, 5000)
         }
       })
+    } else if (message.text.toLowerCase().indexOf('lorenc') === 0) {
+      if (get_user(message.user).toLowerCase() !== "lorenc") {
+        bot.postMessageToChannel(channel, "Got a problem with him, " + get_user(message.user) + "?")
+      } else {
+        bot.postMessageToChannel(channel, "I love Lorenc!");
+      }
     } else if (message.text.toLowerCase().includes('joke')) {
       request('https://official-joke-api.appspot.com/random_joke', function (e, r, b) {
         if (e) console.error(e)

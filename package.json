@@ -9,6 +9,7 @@
   "author": "Alex Matheson",
   "license": "ISC",
   "dependencies": {
+    "decode-html": "^2.0.0",
     "slackbots": "^1.0.2",
     "sqlite3": "^3.1.8"
   }
