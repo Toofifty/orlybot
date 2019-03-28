@@ -154,6 +154,13 @@ cleverbot.create(function (e, sess) {
         })
       } else if (message.text.toLowerCase().indexOf('test') === 0) {
         console.log(bot.getUsers()._value.members)
+      } else if (message.text.toLowerCase().indexOf('dd') === 0) {
+        let param = parseInt(message.text.substring(2, message.text.length))
+        if (param > 0 && param < 50) {
+          for (var i = 0; i < param; i++) { 
+            bot.postMessageToChannel(channel, " ")
+          }
+        }
       } else if (message.text.toLowerCase().includes('greg')) {
         console.log('ask cleverbot')
         cleverbot.ask(message.text, function (e, r) {
