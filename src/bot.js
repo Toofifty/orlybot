@@ -21,6 +21,7 @@ var bot = new Bot(settings)
 var seen = []
 
 var users = []
+var employees = ['alex', 'luke', 'lorenc', 'alistair']
 
 var get_user = (id) => {
   var user = users.filter(user => user.id === id)
@@ -132,7 +133,7 @@ cleverbot.create(function (e, sess) {
             }, 5000)
           }
         })
-      } else if (message.text.toLowerCase().indexOf('lorenc') === 0) {
+      } else if (employees.indexOf(message.text.toLowerCase()) >= 0) {
         request('https://evilinsult.com/generate_insult.php?lang=en&type=json', function (e, r, b) {
           if (e) console.error(e)
           else {
