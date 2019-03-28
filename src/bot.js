@@ -53,7 +53,11 @@ var get_orly = function (sr, sort) {
   }, function (e, r, b) {
     if (e) console.log(e)
     else {
-      var post = b['data']['children'][1]['data']
+      try {
+        var post = b['data']['children'][1]['data']
+      } catch {
+        return
+      }
       var img = post['url']
       var title = post['title']
       var i = 1
@@ -83,7 +87,7 @@ cleverbot.create(function (e, sess) {
     }
     console.log(message)
     if (message.type == 'message' && message.text !== undefined && message.username !== 'orly') {
-      if (message.text.toLowerCase().indexOf('orly') > -1) {
+      if (message.text.toLowerCase().includes('orly')) {
         var m = message.text.toLowerCase().split(' ')
         console.log('to me!')
         if (m.length > 3) {
@@ -95,7 +99,8 @@ cleverbot.create(function (e, sess) {
         } else {
           get_orly('orlybooks', 'hot', message.channel)
         }
-      } else if (message.text.toLowerCase().indexOf('trivia') === 0) {
+      }
+      if (message.text.toLowerCase().includes('trivia')) {
         if (current_answer !== null) {
           var m = message.text.toLowerCase().split(' ')
           if (m.length > 1 && m[1].toLowerCase() === 'cancel') {
@@ -132,7 +137,8 @@ cleverbot.create(function (e, sess) {
             }, 5000)
           }
         })
-      } else if (message.text.toLowerCase().indexOf('lorenc') === 0) {
+      }
+      if (message.text.toLowerCase().includes('lorenc')) {
         request('https://evilinsult.com/generate_insult.php?lang=en&type=json', function (e, r, b) {
           if (e) console.error(e)
           else {
@@ -140,7 +146,8 @@ cleverbot.create(function (e, sess) {
             bot.postMessageToChannel(channel, decode(b.insult))
           }
         })
-      } else if (message.text.toLowerCase().includes('joke')) {
+      }
+      if (message.text.toLowerCase().includes('joke')) {
         request('https://official-joke-api.appspot.com/random_joke', function (e, r, b) {
           if (e) console.error(e)
           else {
@@ -151,24 +158,25 @@ cleverbot.create(function (e, sess) {
             }, 10000)
           }
         })
-      } else if (message.text.toLowerCase().indexOf('test') === 0) {
+      }
+      if (message.text.toLowerCase().indexOf('test') === 0) {
         console.log(bot.getUsers()._value.members)
-      } else if (message.text.toLowerCase().includes('greg')) {
+      }
+      if (message.text.toLowerCase().includes('greg')) {
         console.log('ask cleverbot')
         cleverbot.ask(message.text, function (e, r) {
           console.log('cleverbot responded')
           if (e) console.error(e)
           bot.postMessageToChannel(channel, r)
         })
-      } else {
-        if (message.text === current_answer_text.toLowerCase()) {
-          bot.postMessageToChannel(channel, `You got it ${get_user(message.user)}!`)
-          current_answer = null
-          current_answer_text = ''
-          wrong_answers = []
-        } else if (wrong_answers.includes(message.text)) {
-          bot.postMessageToChannel(channel, `${get_user(message.user)} - nope!`)
-        }
+      }
+      if (message.text === current_answer_text.toLowerCase()) {
+        bot.postMessageToChannel(channel, `You got it ${get_user(message.user)}!`)
+        current_answer = null
+        current_answer_text = ''
+        wrong_answers = []
+      } else if (wrong_answers.includes(message.text)) {
+        bot.postMessageToChannel(channel, `${get_user(message.user)} - nope!`)
       }
     }
   })
