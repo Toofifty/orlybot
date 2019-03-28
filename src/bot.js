@@ -21,7 +21,7 @@ var bot = new Bot(settings)
 var seen = []
 
 var users = []
-var employees = ['alex', 'luke', 'lorenc', 'alistair']
+var employees = ['alex', 'luke', 'lorenc', 'alister']
 
 var get_user = (id) => {
   var user = users.filter(user => user.id === id)
