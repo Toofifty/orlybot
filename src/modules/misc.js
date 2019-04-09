@@ -13,7 +13,7 @@ bot.cmd('help', (args, _message, { channel }) => {
 .desc('Get command list / usage for a command')
 
 bot.cmd('joke', (_args, _message, { channel }) => {
-    request('https://official-joke-api.appspot.com/random_joke', (err, res, body) => {
+    request('https://official-joke-api.appspot.com/random_joke', (err, _res, body) => {
         if (err) {
             console.error(err)
             return
@@ -38,7 +38,7 @@ bot.cmd('roll', ([max = 6], _message, { channel, user }) => {
 .desc('Roll a dice')
 
 bot.kw('lorenc', (_message, { channel }) => {
-    request('https://evilinsult.com/generate_insult.php?lang=en&type=json', (err, res, body) => {
+    request('https://evilinsult.com/generate_insult.php?lang=en&type=json', (err, _res, body) => {
         if (err) {
             console.error(err)
             return

@@ -8,10 +8,29 @@ const IGNORE_SUBTYPE = ['bot_message', 'channel_join']
 
 class Bot {
     constructor () {
+        /**
+         * Channel list
+         */
         this.channels = {}
+
+        /**
+         * Command definitions
+         */
         this.commands = {}
+
+        /**
+         * Keyword definitions
+         */
         this.keywords = {}
+
+        /**
+         * User list
+         */
         this.users = {}
+
+        /**
+         * Message queue
+         */
         this.queue = []
 
         this.bot = new Slackbot({
@@ -26,18 +45,14 @@ class Bot {
                 })
                 return
             }
-            try {
-                this.channels = JSON.parse(data)
-            } catch {
-                this.channels = {}
-            }
+            this.channels = JSON.parse(data || '{}')
         })
 
         this.bot.on('message', ({ type, ...message }) => {
             // ignore
-            if (IGNORE_TYPE.includes(type)) return
-            if (message.subtype && IGNORE_SUBTYPE.includes(message.subtype)) return
+            if (IGNORE_TYPE.includes(type) || IGNORE_SUBTYPE.includes(message.subtype)) return
 
+            // update channels
             if (type === 'channel_joined') {
                 this.channels[message.channel.id] = message.channel
                 fs.writeFile('./data/channels.json', JSON.stringify(this.channels), null, err => {
@@ -48,6 +63,7 @@ class Bot {
 
             // try load users
             if (Object.keys(this.users).length === 0) {
+                console.log('Loading users')
                 this.bot.getUsers()._value.members.forEach(member => {
                     this.users[member.id] = member
                 })
@@ -58,9 +74,7 @@ class Bot {
                 return
             }
 
-            if (!message.text) {
-                return
-            }
+            if (!message.text) return
 
             const args = message.text.split(/\s+/g)
             const meta = {
@@ -69,8 +83,7 @@ class Bot {
             }
 
             if (args.length > 0 && this.commands[args[0]]) {
-                const cmd = args.shift()
-                return this.commands[cmd].run(args, message, meta)
+                return this.commands[args.shift()].run(args, message, meta)
             }
 
             Object.keys(this.keywords).forEach(keyword => {
@@ -80,15 +93,17 @@ class Bot {
             })
         })
 
+        // message sending queue
         setInterval(() => {
             if (this.queue.length > 0) {
                 const { channel, message } = this.queue.shift()
                 this.bot.postMessageToChannel(channel, message)
             }
-        })
+        }, 1000)
     }
 
     /**
+     * Listen for command
      *
      * @param {string} keyword
      * @param {(args: string[], message: any, meta: { channel: string, user }) => any} callback
@@ -102,6 +117,8 @@ class Bot {
     }
 
     /**
+     * Listen for keyword
+     *
      * @param {string} keyword
      * @param {(message: any, meta: { channel: string, user }) => any} callback
      * @returns {void}
@@ -111,11 +128,13 @@ class Bot {
     }
 
     /**
+     * Post message to channel
+     *
      * @param {string|object} channel
      * @param {string} message
      * @param {number} timeout
      */
-    msg (channel, message, timeout) {
+    msg (channel, message, timeout = 0) {
         if (typeof channel === 'object') {
             channel = channel.name
         }
@@ -129,6 +148,8 @@ class Bot {
     }
 
     /**
+     * Post message to user
+     *
      * @param {string|object} user
      * @param {string} message
      */
@@ -139,6 +160,9 @@ class Bot {
         this.bot.postMessageToUser(user, message)
     }
 
+    /**
+     * Get all non-hidden commands
+     */
     getCommands () {
         return pickBy(this.commands, (key, value) => !value.hidden)
     }

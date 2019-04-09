@@ -9,25 +9,38 @@ export default class Command {
         this.set(data)
     }
 
+    /**
+     * Set data on command
+     *
+     * @param {*} data
+     */
     set (data) {
-        Object.keys(data).forEach(key => this[key] = data[key])
-    }
-
-    do (callback) {
-        if (callback !== undefined) {
-            this.callback = callback
-        }
-        return this
-    }
-
-    desc (description) {
-        if (description !== undefined) {
-            this.description = description
-        }
+        Object.keys(data)
+            .filter(key => data[key] !== undefined)
+            .forEach(key => this[key] = data[key])
         return this
     }
 
     /**
+     * Add callback
+     *
+     * @param {({ args: string[], message: any, meta: { channel: any, user: any }}) => any)} description
+     */
+    do (callback) {
+        return this.set({ callback })
+    }
+
+    /**
+     * Add description
+     *
+     * @param {string} description
+     */
+    desc (description) {
+        return this.set({ description })
+    }
+
+    /**
+     * Add argument
      *
      * @param {{required: bool, name: string, def: any}} data
      */
@@ -36,18 +49,16 @@ export default class Command {
         return this
     }
 
-    args (argz) {
-        if (argz !== undefined) {
-            this.argz = argz
-        }
-        return this
+    /**
+     * Hide from help
+     */
+    hide (hidden = true) {
+        return this.set({ hidden })
     }
 
-    hide () {
-        this.hidden = true
-        return this
-    }
-
+    /**
+     * Get help message
+     */
     helpMessage () {
         const args = this.argz.map(({ required = false, name, def }) =>
             `${required ? '<' : '['}${name}`
@@ -56,6 +67,13 @@ export default class Command {
         return `\`${this.keyword}${args ? ` ${args}` : ''}\` - ${this.description}`
     }
 
+    /**
+     * Run command
+     *
+     * @param {string[]} args
+     * @param {any} message
+     * @param {{ channel: any, user: any }} meta
+     */
     run (args, message, meta) {
         return this.callback(args, message, meta)
     }
