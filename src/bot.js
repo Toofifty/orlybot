@@ -1,7 +1,7 @@
 import Slackbot from 'slackbots'
 import fs from 'fs'
 import Command from './command'
-import { pickBy } from './util';
+import { pickBy } from './util'
 
 const IGNORE_TYPE = ['error', 'hello', 'user_typing']
 const IGNORE_SUBTYPE = ['bot_message', 'channel_join']
