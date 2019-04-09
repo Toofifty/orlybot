@@ -1,16 +1,21 @@
 {
-  "name": "orlybot",
-  "version": "1.0.0",
-  "description": "Posts 'orlybooks' to the Kobecreations slack",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "Alex Matheson",
-  "license": "ISC",
-  "dependencies": {
-    "decode-html": "^2.0.0",
-    "slackbots": "^1.0.2",
-    "sqlite3": "^3.1.8"
-  }
+    "name": "orlybo",
+    "version": "0.0.1",
+    "description": "Orly Slackbot",
+    "main": "src/main.js",
+    "author": "Alex Matheson <alex@matho.me>",
+    "license": "MIT",
+    "dependencies": {
+        "@babel/core": "^7.4.3",
+        "@babel/node": "^7.2.2",
+        "@babel/preset-env": "^7.4.3",
+        "cleverbot.io": "^1.0.4",
+        "decode-html": "^2.0.0",
+        "dotenv": "^7.0.0",
+        "nodemon": "^1.18.10",
+        "slackbots": "^1.2.0"
+    },
+    "scripts": {
+        "bot": "nodemon --watch src --exec babel-node src/orly.js"
+    }
 }
