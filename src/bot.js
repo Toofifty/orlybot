@@ -1,183 +1,147 @@
-'use strict'
+import Slackbot from 'slackbots'
+import fs from 'fs'
+import Command from './command'
+import { pickBy } from './util';
 
-var Bot = require('slackbots')
-var request = require('request')
-var util = require('util')
-var fs = require('fs')
-var decode = require('decode-html')
-var cb = require('cleverbot.io')
-var cleverbot = new cb('uim5IM6pXFCUy3AL', 'E2ktGYNVuzQ9orLAEilnoVwinfFX1oep')
-var channel = 'coffee'
-var current_answer = null
-var current_answer_text = ''
-var wrong_answers = []
+const IGNORE_TYPE = ['error', 'hello', 'user_typing']
+const IGNORE_SUBTYPE = ['bot_message', 'channel_join']
 
-var settings = {
-  token: 'xoxb-138434470642-NZggQ2cApB76caL5KHKM3dkv',
-  name: 'greg'
-}
+class Bot {
+    constructor () {
+        this.channels = {}
+        this.commands = {}
+        this.keywords = {}
+        this.users = {}
+        this.queue = []
 
-var bot = new Bot(settings)
-var seen = []
+        this.bot = new Slackbot({
+            token: process.env.SLACK_TOKEN,
+            name: process.env.SLACK_NAME
+        })
 
-var users = []
+        fs.readFile('./data/channels.json', (err, data) => {
+            if (err) {
+                fs.writeFile('./data/channels.json', '{}', null, err => {
+                    if (err) console.error
+                })
+                return
+            }
+            try {
+                this.channels = JSON.parse(data)
+            } catch {
+                this.channels = {}
+            }
+        })
 
-var get_user = (id) => {
-  var user = users.filter(user => user.id === id)
-  if (user.length > 0) {
-    user = user[0]
-    return user.profile.display_name
-  }
-  return 'null'
-}
+        this.bot.on('message', ({ type, ...message }) => {
+            // ignore
+            if (IGNORE_TYPE.includes(type)) return
+            if (message.subtype && IGNORE_SUBTYPE.includes(message.subtype)) return
 
-fs.readFile('seen', 'utf8', function (e, d) {
-  if (e)
-    fs.writeFile('seen', '', function (e) {
-      if (e) {
-        console.log('failed to read/write data')
-        return
-      }
-    })
-  seen = d.split(',')
-})
+            if (type === 'channel_joined') {
+                this.channels[message.channel.id] = message.channel
+                fs.writeFile('./data/channels.json', JSON.stringify(this.channels), null, err => {
+                    if (err) console.error(err)
+                })
+                return
+            }
 
-cleverbot.setNick('greg')
+            // try load users
+            if (Object.keys(this.users).length === 0) {
+                this.bot.getUsers()._value.members.forEach(member => {
+                    this.users[member.id] = member
+                })
+            }
 
-var get_orly = function (sr, sort) {
-  console.log('making request!')
-  var t = sort == 'top' ? '?t=all' : ''
-  request({
-    url: 'https://www.reddit.com/r/' + sr + '/' + sort + '.json' + t,
-    json: true
-  }, function (e, r, b) {
-    if (e) console.log(e)
-    else {
-      try {
-        var post = b['data']['children'][1]['data']
-      } catch {
-        return
-      }
-      var img = post['url']
-      var title = post['title']
-      var i = 1
-      while (seen.indexOf(img) > -1 || img.indexOf('/comments/') > -1) {
-        post = b['data']['children'][i++]['data']
-        img = post['url']
-        title = post['title']
-      }
-      bot.postMessageToChannel(channel, decode('*' + title + '*\n' + img))
-      console.log('sent ' + img + '!')
-      seen.push(img)
-      fs.writeFile('seen', seen.join(','), {}, (err) => {
-        console.error(err)
-      })
-      console.log('saved! ' + seen.length)
+            if (!this.channels[message.channel]) {
+                console.error('Channels are out of date, re-invite orly')
+                return
+            }
+
+            if (!message.text) {
+                return
+            }
+
+            const args = message.text.split(/\s+/g)
+            const meta = {
+                channel: this.channels[message.channel].name,
+                user: this.users[message.user]
+            }
+
+            if (args.length > 0 && this.commands[args[0]]) {
+                const cmd = args.shift()
+                return this.commands[cmd].run(args, message, meta)
+            }
+
+            Object.keys(this.keywords).forEach(keyword => {
+                if (message.text.toLowerCase().includes(keyword)) {
+                    this.keywords[keyword](message, meta)
+                }
+            })
+        })
+
+        setInterval(() => {
+            if (this.queue.length > 0) {
+                const { channel, message } = this.queue.shift()
+                this.bot.postMessageToChannel(channel, message)
+            }
+        })
     }
-  })
-}
 
-// bot.on('start', get_orly)
-
-cleverbot.create(function (e, sess) {
-  bot.postMessageToChannel(channel, 'yeet')
-  bot.on('message', function (message) {
-    if (users.length === 0) {
-      users = bot.getUsers()._value.members
+    /**
+     *
+     * @param {string} keyword
+     * @param {(args: string[], message: any, meta: { channel: string, user }) => any} callback
+     * @param {string} desc
+     * @param {string[]} args
+     * @return {Command}
+     */
+    cmd (keyword, callback = null, description = null, args = {}) {
+        this.commands[keyword] = new Command(keyword, { callback, description, args })
+        return this.commands[keyword]
     }
-    console.log(message)
-    if (message.type == 'message' && message.text !== undefined && message.username !== 'orly') {
-      if (message.text.toLowerCase().includes('orly')) {
-        var m = message.text.toLowerCase().split(' ')
-        console.log('to me!')
-        if (m.length > 3) {
-          get_orly(m[1], m[2], m[3])
-        } if (m.length > 2) {
-          get_orly(m[1], m[2])
-        } else if (m.length > 1) {
-          get_orly(m[1], 'hot', message.channel)
+
+    /**
+     * @param {string} keyword
+     * @param {(message: any, meta: { channel: string, user }) => any} callback
+     * @returns {void}
+     */
+    kw (keyword, callback) {
+        this.keywords[keyword] = callback
+    }
+
+    /**
+     * @param {string|object} channel
+     * @param {string} message
+     * @param {number} timeout
+     */
+    msg (channel, message, timeout) {
+        if (typeof channel === 'object') {
+            channel = channel.name
+        }
+        if (!timeout) {
+            this.queue.push({ channel, message })
         } else {
-          get_orly('orlybooks', 'hot', message.channel)
-        }
-      }
-      if (message.text.toLowerCase().includes('trivia')) {
-        if (current_answer !== null) {
-          var m = message.text.toLowerCase().split(' ')
-          if (m.length > 1 && m[1].toLowerCase() === 'cancel') {
-            bot.postMessageToChannel(channel, 'Trivia question cancelled')
-            current_answer = null
-            current_answer_text = ''
-            wrong_answers = []
-            return
-          } else {
-            bot.postMessageToChannel(channel, 'A question has already been asked, answer that first')
-            return
-          }
-        }
-        var url = 'https://opentdb.com/api.php?amount=1'
-        var m = message.text.toLowerCase().split(' ')
-        if (m.length > 1) {
-          url = url + '&difficulty=' + m[1]
-        }
-        request('https://opentdb.com/api.php?amount=1', function (e, r, b) {
-          if (e) {
-            console.error(e)
-          } else {
-            b = JSON.parse(b)
-            const q = b.results[0]
-            bot.postMessageToChannel(channel, decode(q.category + ': ' + q.question))
-            const ri = Math.floor(Math.random() * 4)
-            let answers = q.incorrect_answers
-            answers.splice(ri, 0, q.correct_answer)
-            current_answer = ri + 1
-            current_answer_text = decode('' + q.correct_answer)
-            wrong_answers = q.incorrect_answers.map(v => v.toLowerCase())
             setTimeout(() => {
-              bot.postMessageToChannel(channel, decode(answers.map((a, i) => `${i+1}. ${a}`).join('\n')))
-            }, 5000)
-          }
-        })
-      }
-      if (message.text.toLowerCase().includes('lorenc')) {
-        request('https://evilinsult.com/generate_insult.php?lang=en&type=json', function (e, r, b) {
-          if (e) console.error(e)
-          else {
-            b = JSON.parse(b)
-            bot.postMessageToChannel(channel, decode(b.insult))
-          }
-        })
-      }
-      if (message.text.toLowerCase().includes('joke')) {
-        request('https://official-joke-api.appspot.com/random_joke', function (e, r, b) {
-          if (e) console.error(e)
-          else {
-            b = JSON.parse(b)
-            bot.postMessageToChannel(channel, decode(b.setup))
-            setTimeout(() => {
-              bot.postMessageToChannel(channel, decode(b.punchline))
-            }, 10000)
-          }
-        })
-      }
-      if (message.text.toLowerCase().indexOf('test') === 0) {
-        console.log(bot.getUsers()._value.members)
-      }
-      if (message.text.toLowerCase().includes('greg')) {
-        console.log('ask cleverbot')
-        cleverbot.ask(message.text, function (e, r) {
-          console.log('cleverbot responded')
-          if (e) console.error(e)
-          bot.postMessageToChannel(channel, r)
-        })
-      }
-      if (message.text === current_answer_text.toLowerCase()) {
-        bot.postMessageToChannel(channel, `You got it ${get_user(message.user)}!`)
-        current_answer = null
-        current_answer_text = ''
-        wrong_answers = []
-      } else if (wrong_answers.includes(message.text)) {
-        bot.postMessageToChannel(channel, `${get_user(message.user)} - nope!`)
-      }
+                this.queue.push({ channel, message })
+            }, timeout)
+        }
     }
-  })
-})
+
+    /**
+     * @param {string|object} user
+     * @param {string} message
+     */
+    priv (user, message) {
+        if (typeof user === 'object') {
+            user = user.name
+        }
+        this.bot.postMessageToUser(user, message)
+    }
+
+    getCommands () {
+        return pickBy(this.commands, (key, value) => !value.hidden)
+    }
+}
+
+export default new Bot()
