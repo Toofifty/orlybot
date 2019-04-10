@@ -52,13 +52,15 @@ class Bot {
             // ignore
             if (IGNORE_TYPE.includes(type) || IGNORE_SUBTYPE.includes(message.subtype)) return
 
-            // update channels
-            if (type === 'channel_joined') {
-                this.channels[message.channel.id] = message.channel
+            // try load channels
+            if (Object.keys(this.channels).length === 0) {
+                console.log('Loading channels')
+                this.bot.getChannels()._value.channels.forEach(channel => {
+                    this.channels[channel.id] = channel
+                })
                 fs.writeFile('./data/channels.json', JSON.stringify(this.channels), null, err => {
                     if (err) console.error(err)
                 })
-                return
             }
 
             // try load users
@@ -66,6 +68,9 @@ class Bot {
                 console.log('Loading users')
                 this.bot.getUsers()._value.members.forEach(member => {
                     this.users[member.id] = member
+                })
+                fs.writeFile('./data/users.json', JSON.stringify(this.users), null, err => {
+                    if (err) console.error(err)
                 })
             }
 

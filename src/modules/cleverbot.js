@@ -2,7 +2,7 @@ import bot from '../bot'
 import cleverbotIO from 'cleverbot.io'
 import { tag } from '../util'
 
-if (process.env.CLEVERBOT_ENABLED) {
+if (process.env.CLEVERBOT_ENABLED !== "0") {
     const NAME = 'Fred'
 
     const cleverbot = new cleverbotIO(
