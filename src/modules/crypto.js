@@ -22,12 +22,12 @@ bot.cmd('crypto', ([primary = 'BTC', secondary = 'USD'], _message, { channel }) 
                         'title': `${primary}/${secondary} Price Information`,
                         'fields': [
                             {
-                                'title': `Price`,
+                                'title': 'Price',
                                 'value': content.PRICE.toLocaleString() + ' ' + content.TOSYMBOL,
                                 'short': true
                             },
                             {
-                                'title': `Market Cap`,
+                                'title': 'Market Cap',
                                 'value': content.MKTCAP.toLocaleString() + ' ' + content.TOSYMBOL,
                                 'short': true
                             }
