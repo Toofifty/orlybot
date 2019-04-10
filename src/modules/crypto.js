@@ -5,12 +5,11 @@ import request from 'request'
 
 
 bot.cmd('crypto', ([primary = 'BTC', secondary = 'USD'], _message, { channel }) => {
-    console.log('test');
     primary = primary.toUpperCase()
     secondary = secondary.toUpperCase()
 
     request({
-        url: `https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${primary}&tsyms=${secondary}&api_key=`,
+        url: `https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${primary}&tsyms=${secondary}&api_key=${process.env.CRYPTO_API}`,
         json: true
     }, (err, _res, body) => {
         try {
