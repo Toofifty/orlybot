@@ -17,17 +17,17 @@ bot.cmd('crypto', ([primary = 'BTC', secondary = 'USD'], _message, { channel }) 
                 'attachments': [
                     {
                         'fallback': 'Required plain-text summary of the attachment.',
-                        'color': '#' + make_colour(6),
+                        'color': `#${make_colour(6)}`,
                         'title': `${primary}/${secondary} Price Information`,
                         'fields': [
                             {
                                 'title': 'Price',
-                                'value': content.PRICE.toLocaleString() + ' ' + content.TOSYMBOL,
+                                'value': `${content.PRICE.toLocaleString()} ${content.TOSYMBOL}`,
                                 'short': true
                             },
                             {
                                 'title': 'Market Cap',
-                                'value': content.MKTCAP.toLocaleString() + ' ' + content.TOSYMBOL,
+                                'value': `${content.MKTCAP.toLocaleString()} ${content.TOSYMBOL}`,
                                 'short': true
                             }
                         ],
