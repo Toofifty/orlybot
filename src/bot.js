@@ -101,8 +101,8 @@ class Bot {
         // message sending queue
         setInterval(() => {
             if (this.queue.length > 0) {
-                const { channel, message } = this.queue.shift()
-                this.bot.postMessageToChannel(channel, message)
+                const { channel, message, attachment = {} } = this.queue.shift()
+                this.bot.postMessageToChannel(channel, message, attachment)
             }
         }, 1000)
     }
@@ -152,6 +152,27 @@ class Bot {
         } else {
             setTimeout(() => {
                 this.queue.push({ channel, message })
+            }, timeout)
+        }
+    }
+
+
+    /**
+     * Post message to channel
+     *
+     * @param {string|object} channel
+     * @param {string} message
+     * @param {number} timeout
+     */
+    msgAttachment (channel, message, attachment, timeout = 0) {
+        if (typeof channel === 'object') {
+            channel = channel.name
+        }
+        if (!timeout) {
+            this.queue.push({ channel, message, attachment })
+        } else {
+            setTimeout(() => {
+                this.queue.push({ channel, message, attachment })
             }, timeout)
         }
     }
