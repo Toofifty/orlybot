@@ -45,13 +45,12 @@ bot.cmd('crypto', ([primary = 'BTC', secondary = 'USD'], _message, { channel }) 
 });
 
 
-function make_colour(length)
-{
-    var text = "";
-    var possible = "0123456789ABCDEF";
+const makeColour = (length) => {
+    let text = ""
+    const possible = "0123456789ABCDEF"
 
-    for (var i = 0; i < length; i++)
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-
-    return text;
+    for (var i = 0; i < length; i++) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length))
+    }
+    return text
 }
