@@ -30,9 +30,13 @@ bot.cmd('_eval', (_args, { text }, { user, channel }) => {
     bot.msg(channel, '```' + eval(code) + '```')
 }).hide()
 
-bot.cmd('_kw', (_args, _message, { user, channel }) => {
+bot.cmd('_kw', (_args, _message, { channel, user }) => {
     bot.msg(
         channel,
         Object.keys(bot.keywords).map(ticks).join(' ') || 'Nothing interesting happens.'
     )
+}).hide()
+
+bot.cmd('_tok', (args, _message, { channel }) => {
+    bot.msg(channel, args.map(ticks).join(' '))
 }).hide()

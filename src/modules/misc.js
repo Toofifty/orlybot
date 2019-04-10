@@ -7,7 +7,11 @@ bot.cmd('help', (args, _message, { channel }) => {
     const [cmd] = args
     let commands = bot.getCommands()
     if (cmd) commands = pickBy(commands, key => key === cmd)
-    bot.msg(channel, Object.keys(commands).map(key => commands[key].helpMessage()).join('\n'))
+    bot.msg(
+        channel,
+        Object.keys(commands).map(key => commands[key].help).join('\n')
+            || 'Nothing interesting happens'
+    )
 })
 .arg({ name: 'cmd' })
 .desc('Get command list / usage for a command')

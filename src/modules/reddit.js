@@ -14,7 +14,7 @@ fs.readFile('./data/seen.csv', 'utf8', (err, data) => {
     seen = data.split(',')
 })
 
-bot.cmd('orly', ([subreddit = 'orlybook', sort = 'hot', time = ''], _message, meta) => {
+bot.cmd('orly', ([subreddit = 'orlybook', sort = 'hot', time = ''], _message, { channel }) => {
     if (time) time = `?sort=${sort}&t=${time}`
 
     request({
@@ -35,14 +35,14 @@ bot.cmd('orly', ([subreddit = 'orlybook', sort = 'hot', time = ''], _message, me
                 title = post['title']
             } while (seen.indexOf(img) > -1 || img.indexOf('/comments/') > -1)
 
-            bot.msg(meta.channel, `*${title}*\n${img}`)
+            bot.msg(channel, `*${title}*\n${img}`)
             seen.push(img)
             fs.writeFile('./data/seen.csv', seen.join(','), null, err => {
                 if (err) console.error(err)
             })
         } catch (e) {
             console.error(e)
-            bot.msg(meta.channel, e)
+            bot.msg(channel, e)
         }
     })
 })

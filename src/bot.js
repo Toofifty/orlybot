@@ -1,7 +1,7 @@
 import Slackbot from 'slackbots'
 import fs from 'fs'
 import Command from './command'
-import { pickBy } from './util'
+import { pickBy, tokenize } from './util'
 
 const IGNORE_TYPE = ['error', 'hello', 'user_typing']
 const IGNORE_SUBTYPE = ['bot_message', 'channel_join']
@@ -81,7 +81,7 @@ class Bot {
 
             if (!message.text) return
 
-            const args = message.text.split(/\s+/g)
+            const args = tokenize(message.text)
             const meta = {
                 channel: this.channels[message.channel].name,
                 user: this.users[message.user]
@@ -129,7 +129,11 @@ class Bot {
      * @returns {void}
      */
     kw (keyword, callback) {
-        this.keywords[keyword] = callback
+        if (!callback) {
+            delete this.keywords[keyword]
+        } else {
+            this.keywords[keyword] = callback
+        }
     }
 
     /**

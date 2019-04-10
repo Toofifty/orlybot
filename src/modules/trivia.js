@@ -2,13 +2,16 @@ import bot from '../bot'
 import request from 'request'
 import decode from 'decode-html'
 import { randint, tag } from '../util'
+import userdata from '../userdata'
+import { cmd } from '../command'
 
 const incorrect = (_message, { channel, user }) => {
     bot.msg(channel, `${tag(user)} - nope!`)
 }
 
 const correct = (_message, { channel, user }) => {
-    bot.msg(channel, `You got it ${tag(user)}!`)
+    const wins = userdata.set(user, 'trivia_wins', userdata.get(user, 'trivia_wins', 0) + 1)
+    bot.msg(channel, `You got it ${tag(user)}! You've won ${wins} trivias :)`)
     trivia.reset()
 }
 
@@ -31,12 +34,7 @@ const trivia = {
 
 bot.cmd('trivia', ([arg], _message, { channel }) => {
     if (trivia.answerId !== null) {
-        if (arg === 'cancel') {
-            bot.msg(channel, 'Trivia has been cancelled :\'(')
-            trivia.reset()
-        } else {
-            bot.msg(channel, 'A question has already been asked, answer that first')
-        }
+        bot.msg(channel, 'A question has already been asked, answer that first')
         return
     }
     request(
@@ -51,8 +49,8 @@ bot.cmd('trivia', ([arg], _message, { channel }) => {
             bot.msg(channel, decode(`*${category}*: ${question}`))
 
             trivia.answerId = randint(4)
-            trivia.answer = decode('' + correct_answer)
-            trivia.wrong = incorrect_answers.map(v => v.toLowerCase())
+            trivia.answer = decode('' + correct_answer).toLowerCase()
+            trivia.wrong = incorrect_answers.map(v => decode('' + v).toLowerCase())
 
             let answers = incorrect_answers
             answers.splice(trivia.answerId, 0, correct_answer)
@@ -62,5 +60,16 @@ bot.cmd('trivia', ([arg], _message, { channel }) => {
         }
     )
 })
-.desc('Play trivia! Stop with `trivia cancel`')
+.desc('Play trivia!')
 .arg({ name: 'difficulty', def: 'easy' })
+.sub(
+    cmd('cancel', (_args, _message, { channel }) => {
+        if (trivia.answerId === null) {
+            bot.msg(channel, 'There\'s no trivia game at the moment')
+            return
+        }
+        bot.msg(channel, 'Trivia has been cancelled :\'(')
+        trivia.reset()
+    })
+    .desc('Cancel the current trivia game')
+)

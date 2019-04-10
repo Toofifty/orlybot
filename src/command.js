@@ -1,3 +1,16 @@
+/**
+ * Create a new command
+ *
+ * @param {string} keyword
+ * @param {(args: string[], message: any, meta: { channel: string, user }) => any} callback
+ * @param {string} desc
+ * @param {string[]} args
+ * @return {Command}
+ */
+export const cmd = (keyword, callback = null, description = null, args = {}) => {
+    return new Command(keyword, { callback, description, args })
+}
+
 export default class Command {
     constructor (keyword, data) {
         this.argz = []
@@ -5,6 +18,7 @@ export default class Command {
         this.hidden = false
         this.description = null
         this.keyword = keyword
+        this.subs = {}
 
         this.set(data)
     }
@@ -50,6 +64,16 @@ export default class Command {
     }
 
     /**
+     * Add sub command
+     *
+     * @param {Command} command
+     */
+    sub (command) {
+        this.subs[command.keyword] = command
+        return this
+    }
+
+    /**
      * Hide from help
      */
     hide (hidden = true) {
@@ -57,14 +81,25 @@ export default class Command {
     }
 
     /**
+     * If command has sub commands
+     */
+    get hasSubs () {
+        return Object.keys(this.subs).length > 0
+    }
+
+    /**
      * Get help message
      */
-    helpMessage () {
+    get help () {
         const args = this.argz.map(({ required = false, name, def }) =>
-            `${required ? '<' : '['}${name}`
-            + `${def !== undefined ? `=${JSON.stringify(def)}` : ''}${required ? '>' : ']'}`
+            `${required ? '<' : '['}`
+            + `${name}${def !== undefined ? `=${JSON.stringify(def)}` : ''}`
+            + `${required ? '>' : ']'}`
         ).join(' ')
         return `\`${this.keyword}${args ? ` ${args}` : ''}\` - ${this.description}`
+            + (this.hasSubs
+                ? `\n${Object.entries(this.subs).map(cmd => cmd.help).join('\n')}`
+                : '')
     }
 
     /**
