@@ -42,7 +42,7 @@ bot.cmd('crypto', ([primary = 'BTC', secondary = 'USD'], _message, { channel }) 
         }
     })
 })
-.desc("Shows the current price of a particular cryptocurrency pair.")
+.desc('Shows the current price of a particular cryptocurrency pair.')
 .arg({ name: 'primary', def: 'BTC' })
 .arg({ name: 'secondary', def: 'USD' })
 
