@@ -14,7 +14,7 @@ bot.cmd('crypto', ([primary = 'BTC', secondary = 'USD'], _message, { channel }) 
     }, (err, _res, body) => {
         try {
             const content = body.RAW[primary][secondary]
-            bot.msgAttachment(meta., '', {
+            bot.msgAttachment(meta.channel, '', {
                 'attachments': [
                     {
                         'fallback': 'Required plain-text summary of the attachment.',
