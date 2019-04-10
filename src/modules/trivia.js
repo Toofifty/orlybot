@@ -78,7 +78,9 @@ bot.cmd('trivia', ([arg], _message, { channel }) => {
         if (player) {
             bot.msg(
                 channel,
-                `${tag(bot.getUser(player))} has ${userdata.get(bot.getUser(player), 'trivia_wins', 0)} trivia wins`
+                `${tag(bot.getUser(player))} has *${userdata.get(
+                    bot.getUser(player), 'trivia_wins', 0
+                )}* trivia wins`
             )
             return
         }
@@ -86,7 +88,7 @@ bot.cmd('trivia', ([arg], _message, { channel }) => {
             channel,
             userdata.allUsers.map(userId => {
                 const { name } = bot.getUserById(userId)
-                return `${name} - ${userdata.get(userId, 'trivia_wins', 0)} wins`
+                return `*${name}* - ${userdata.get(userId, 'trivia_wins', 0)} wins`
             }).join('\n')
         )
     })

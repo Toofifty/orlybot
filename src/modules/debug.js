@@ -1,5 +1,6 @@
 import bot from '../bot'
-import { tag, ticks } from '../util'
+import { tag, ticks, pre } from '../util'
+import userdata from '../userdata'
 
 bot.cmd('_users', (_args, _message, { channel }) => {
     bot.msg(channel, JSON.stringify(bot.users))
@@ -10,24 +11,20 @@ bot.cmd('_channels', (_args, _message, { channel }) => {
 }).hide()
 
 bot.cmd('_me', (_args, _message, { user, channel }) => {
-    bot.msg(channel, tag(user))
+    bot.msg(channel, `${tag(user)} ID: ${ticks(user.id)}`)
+}).hide()
+
+bot.cmd('_userdata', ([other], _message, { user, channel }) => {
+    if (other) user = bot.getUser(other)
+    bot.msg(channel, pre(JSON.stringify(userdata.all(user))))
 }).hide()
 
 bot.cmd('_priv', (_args, _message, { user }) => {
     bot.priv(user, 'hello!')
 }).hide()
 
-bot.cmd('_eval', (_args, { text }, { user, channel }) => {
-    if (!text.includes('`')) {
-        bot.msg(channel, 'Nothing interesting happens.')
-        return
-    }
-    let [, code] = text.match(/_eval\s+`(.+)`/)
-    code = code
-        .replace(/while/, 'whle')
-        .replace(/do\s*{/, 'doot')
-        .replace(/process/, 'prcss')
-    bot.msg(channel, '```' + eval(code) + '```')
+bot.cmd('_eval', ([code], { text }, { user, channel }) => {
+    bot.msg(channel, pre(eval(code)))
 }).hide()
 
 bot.cmd('_kw', (_args, _message, { channel, user }) => {

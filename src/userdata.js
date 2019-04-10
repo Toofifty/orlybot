@@ -1,25 +1,8 @@
-import fs from 'fs'
+import Store from './store'
 
 class UserData {
     constructor () {
-        this.data = {}
-        this.load()
-    }
-
-    load () {
-        fs.readFile('./data/userdata.json', 'utf8', (err, data) => {
-            if (err) {
-                this.save()
-                return
-            }
-            this.data = JSON.parse(data || '{}')
-        })
-    }
-
-    save () {
-        fs.writeFile('./data/userdata.json', JSON.stringify(this.data), null, err => {
-            if (err) console.error(err)
-        })
+        this.store = new Store('userdata', {})
     }
 
     /**
@@ -30,15 +13,11 @@ class UserData {
      * @param {any} value
      */
     set (user, key, value) {
-        if (typeof user === 'object') {
-            user = user.id
+        if (typeof user === 'object') user = user.id
+        if (!this.store.get(user)) {
+            this.store.commit(user, {})
         }
-        if (!this.data[user]) {
-            this.data[user] = {}
-        }
-        this.data[user][key] = value
-        this.save()
-        return value
+        return this.store.commit([user, key], value)
     }
 
     /**
@@ -49,17 +28,17 @@ class UserData {
      * @param {any} def default
      */
     get (user, key, def = null) {
-        if (typeof user === 'object') {
-            user = user.id
-        }
-        if (!this.data[user]) {
-            this.data[user] = {}
-        }
-        return this.data[user][key] !== undefined ? this.data[user][key] : def
+        if (typeof user === 'object') user = user.id
+        return this.store.get([user, key], def)
+    }
+
+    all (user) {
+        if (typeof user === 'object') user = user.id
+        return this.store.get(user)
     }
 
     get allUsers () {
-        return Object.keys(this.data)
+        return Object.keys(this.store.data)
     }
 }
 

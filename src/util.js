@@ -45,11 +45,25 @@ export const randint = (max) => {
 }
 
 /**
+ * Get random hex colour
+ */
+export const randcolour = () => {
+    return '#' + Math.floor(Math.random() * 0xFFFFFF).toString(16).padStart(6, '0')
+}
+
+/**
  * Wrap in backticks
  *
  * @param {string} str
  */
 export const ticks = (str) => `\`${str}\``
+
+/**
+ * Wrap in 3 backticks
+ *
+ * @param {string} str
+ */
+export const pre = (str) => ticks(ticks(ticks(str)))
 
 /**
  * Wrap in colons
@@ -94,4 +108,29 @@ export const tokenize = (str) => {
             return { quote, tokens, working: working + letter }
         }, { quote: null, tokens: [], working: '' })
         .tokens
+}
+
+/**
+ * Get a formatted table for the dataset
+ *
+ * @param {string[]} colHeaders
+ * @param {string[]} columns
+ * @param {any[]} data array of objects
+ */
+export const table = (colHeaders, rowHeaders, data) => {
+    const widths = [
+        Math.max(...rowHeaders.map(col => col.length)),
+        ...colHeaders.map((header, i) =>
+            Math.max(header.length, ...Object.values(data[i]).map(val => (val + '' || '').length))
+        )
+    ]
+    return [
+        ['', ...colHeaders].map((header, i) => header.padStart(widths[i])).join(' | '),
+        ['', ...colHeaders].map((_h, i) => '-'.padStart(widths[i], '-')).join('-|-'),
+        ...rowHeaders.map(col =>
+            [col.replace(/_/g, ' ').padEnd(widths[0]), ...data.map((cell, i) =>
+                (cell[col] !== null ? cell[col] + '' : '-').padStart(widths[i + 1])
+            )].join(' | ')
+        )
+    ].join('\n')
 }
