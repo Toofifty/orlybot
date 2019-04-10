@@ -36,18 +36,21 @@ bot.cmd('crypto', ([primary = 'BTC', secondary = 'USD'], _message, { channel }) 
                         'ts': +Date.now()/1000
                     }
                 ]
-            });
+            })
         } catch (e) {
             console.error(e)
             bot.msg(channel, e)
         }
-    });
-}).desc("Shows the current price of a particular cryptocurrency pair.");
+    })
+})
+.desc("Shows the current price of a particular cryptocurrency pair.")
+.arg({ name: 'primary', def: 'BTC' })
+.arg({ name: 'secondary', def: 'USD' })
 
 
 const makeColour = (length) => {
-    let text = ""
-    const possible = "0123456789ABCDEF"
+    let text = ''
+    const possible = '0123456789ABCDEF'
 
     for (var i = 0; i < length; i++) {
         text += possible.charAt(Math.floor(Math.random() * possible.length))
