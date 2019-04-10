@@ -11,6 +11,19 @@ export const tag = (user) => {
 }
 
 /**
+ * Find in array
+ *
+ * @param {any[]} arr
+ * @param {(element: any, index: number) => boolean} predicate
+ */
+export const find = (arr, predicate) => {
+    if (!Array.isArray(arr)) {
+        arr = Object.values(arr)
+    }
+    return arr.filter(predicate)[0] || null
+}
+
+/**
  * Filter object
  *
  * @param {any} obj

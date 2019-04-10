@@ -57,6 +57,10 @@ class UserData {
         }
         return this.data[user][key] !== undefined ? this.data[user][key] : def
     }
+
+    get allUsers () {
+        return Object.keys(this.data)
+    }
 }
 
 export default new UserData()

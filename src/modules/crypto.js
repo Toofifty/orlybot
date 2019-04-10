@@ -1,8 +1,6 @@
 import bot from '../bot'
 import request from 'request'
 
-
-
 bot.cmd('crypto', ([primary = 'BTC', secondary = 'USD'], _message, { channel }) => {
     primary = primary.toUpperCase()
     secondary = secondary.toUpperCase()
@@ -16,8 +14,8 @@ bot.cmd('crypto', ([primary = 'BTC', secondary = 'USD'], _message, { channel }) 
             bot.msgAttachment(channel, '', {
                 'attachments': [
                     {
-                        'fallback': 'Required plain-text summary of the attachment.',
-                        'color': `#${make_colour(6)}`,
+                        'fallback': 'Lorenc sucks ass',
+                        'color': `#${makeColour(6)}`,
                         'title': `${primary}/${secondary} Price Information`,
                         'fields': [
                             {

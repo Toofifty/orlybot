@@ -1,7 +1,7 @@
 import Slackbot from 'slackbots'
 import fs from 'fs'
 import Command from './command'
-import { pickBy, tokenize } from './util'
+import { pickBy, tokenize, find } from './util'
 
 const IGNORE_TYPE = ['error', 'hello', 'user_typing']
 const IGNORE_SUBTYPE = ['bot_message', 'channel_join']
@@ -105,6 +105,14 @@ class Bot {
                 this.bot.postMessageToChannel(channel, message, attachment)
             }
         }, 1000)
+    }
+
+    getUser (name) {
+        return find(this.users, user => user.name === name)
+    }
+
+    getUserById (id) {
+        return this.users[id]
     }
 
     /**

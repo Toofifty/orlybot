@@ -73,3 +73,23 @@ bot.cmd('trivia', ([arg], _message, { channel }) => {
     })
     .desc('Cancel the current trivia game')
 )
+.sub(
+    cmd('score', ([player], _message, { channel }) => {
+        if (player) {
+            bot.msg(
+                channel,
+                `${tag(bot.getUser(player))} has ${userdata.get(bot.getUser(player), 'trivia_wins', 0)} trivia wins`
+            )
+            return
+        }
+        bot.msg(
+            channel,
+            userdata.allUsers.map(userId => {
+                const { name } = bot.getUserById(userId)
+                return `${name} - ${userdata.get(userId, 'trivia_wins', 0)} wins`
+            }).join('\n')
+        )
+    })
+    .arg({ name: 'user' })
+    .desc('Get trivia win counts')
+)

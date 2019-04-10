@@ -70,6 +70,7 @@ export default class Command {
      */
     sub (command) {
         this.subs[command.keyword] = command
+        command.keyword = `${this.keyword} ${command.keyword}`
         return this
     }
 
@@ -98,7 +99,7 @@ export default class Command {
         ).join(' ')
         return `\`${this.keyword}${args ? ` ${args}` : ''}\` - ${this.description}`
             + (this.hasSubs
-                ? `\n${Object.entries(this.subs).map(cmd => cmd.help).join('\n')}`
+                ? `\n${Object.keys(this.subs).map(key => this.subs[key].help).join('\n')}`
                 : '')
     }
 
@@ -110,6 +111,10 @@ export default class Command {
      * @param {{ channel: any, user: any }} meta
      */
     run (args, message, meta) {
+        const [sub] = args
+        if (sub && this.subs[sub]) {
+            return this.subs[args.shift()].run(args, message, meta)
+        }
         return this.callback(args, message, meta)
     }
 }
