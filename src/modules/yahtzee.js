@@ -60,32 +60,19 @@ const isFullHouse = dice => {
  * Rule definitions
  */
 const rules = {
-    ones: dice =>
-        sum(dice.filter(die => die === 1)),
-    twos: dice =>
-        sum(dice.filter(die => die === 2)),
-    threes: dice =>
-        sum(dice.filter(die => die === 3)),
-    fours: dice =>
-        sum(dice.filter(die => die === 4)),
-    fives: dice =>
-        sum(dice.filter(die => die === 5)),
-    sixes: dice =>
-        sum(dice.filter(die => die === 6)),
-    three_of_a_kind: dice =>
-        ofAKind(dice, 3) ? sum(dice) : 0,
-    four_of_a_kind: dice =>
-        ofAKind(dice, 4) ? sum(dice) : 0,
-    full_house: dice =>
-        isFullHouse(dice) ? 25 : 0,
-    small_straight: dice =>
-        has(dice, r(1, 4)) || has(dice, r(2, 5)) || has(dice, r(3, 6)) ? 30 : 0,
-    large_straight: dice =>
-        has(dice, r(1, 5)) || has(dice, r(2, 6)) ? 40 : 0,
-    yahtzee: dice =>
-        ofAKind(dice, 5) ? 50 : 0,
-    chance: dice =>
-        sum(dice)
+    ones: dice => sum(dice.filter(die => die === 1)),
+    twos: dice => sum(dice.filter(die => die === 2)),
+    threes: dice => sum(dice.filter(die => die === 3)),
+    fours: dice => sum(dice.filter(die => die === 4)),
+    fives: dice => sum(dice.filter(die => die === 5)),
+    sixes: dice => sum(dice.filter(die => die === 6)),
+    three_of_a_kind: dice => ofAKind(dice, 3) ? sum(dice) : 0,
+    four_of_a_kind: dice => ofAKind(dice, 4) ? sum(dice) : 0,
+    full_house: dice => isFullHouse(dice) ? 25 : 0,
+    small_straight: dice => has(dice, r(1, 4)) || has(dice, r(2, 5)) || has(dice, r(3, 6)) ? 30 : 0,
+    large_straight: dice => has(dice, r(1, 5)) || has(dice, r(2, 6)) ? 40 : 0,
+    yahtzee: dice => ofAKind(dice, 5) ? 50 : 0,
+    chance: dice => sum(dice)
 }
 
 /**
@@ -103,10 +90,44 @@ const diceEmoji = n => emoji(['one', 'two', 'three', 'four', 'five', 'six'][n - 
  */
 const diceStatus = (user, dice) => `${tag(user)}: ${dice.map(diceEmoji).join(' ')}`
 
+/**
+ * Check if there is no game for the channel (and msg channel)
+ *
+ * @param {string} channel
+ */
+const noGame = channel => {
+    if (store.get(channel) === undefined) {
+        bot.msg(channel, 'There\'s no Yahtzee! game at the moment')
+        return true
+    }
+    return false
+}
+
+/**
+ * Check if the user is in the game (and msg channel)
+ *
+ * @param {string} channel
+ * @param {any} user
+ */
+const notInGame = (channel, user) => {
+    if (store.get([channel, 'turns']) > 0 && !store.get([channel, 'players', user.id])) {
+        bot.msg(channel, `You're not in this game ${tag(user)}`)
+        return true
+    }
+    return false
+}
+
 bot.cmd('yz', (_args, _message, { channel }) => bot.msg(channel, 'Try `help yz`'))
     .desc('Play Yahtzee!')
     .sub(
-        cmd('new', (_args, _message, { channel }) => {
+        cmd('new', (_args, _message, { channel, user }) => {
+            if (store.get(channel) !== undefined
+                && store.get([channel, 'turns']) > 0
+                && !store.get([channel, 'players', user.id])) {
+                bot.msg(channel, `You can't reset a game you're not in ${tag(user)}`)
+                return
+            }
+
             bot.msg(channel, 'Starting a new game of Yahtzee!')
             store.commit(channel, {
                 players: {},
@@ -116,7 +137,9 @@ bot.cmd('yz', (_args, _message, { channel }) => bot.msg(channel, 'Try `help yz`'
             .desc('Create a new game of Yahtzee@')
     )
     .sub(
-        cmd('cancel', (_args, _message, { channel }) => {
+        cmd('cancel', (_args, _message, { channel, user }) => {
+            if (noGame(channel) || notInGame(channel, user)) return
+
             bot.msg(channel, 'Resetting Yahtzee! :(')
             store.commit(channel, {})
         })
@@ -124,14 +147,8 @@ bot.cmd('yz', (_args, _message, { channel }) => bot.msg(channel, 'Try `help yz`'
     )
     .sub(
         cmd('roll', ([dice = '1,2,3,4,5'], _message, { channel, user }) => {
-            if (store.get(channel) === undefined) {
-                bot.msg(channel, 'There\'s no Yahtzee! game at the moment')
-                return
-            }
-            if (store.get([channel, 'turns']) > 0 && !store.get([channel, 'players', user.id])) {
-                bot.msg(channel, `You're not in this game ${tag(user)}`)
-                return
-            }
+            if (noGame(channel) || notInGame(channel, user)) return
+
             const player = store.get([channel, 'players', user.id], {
                 categories: Object.keys(rules).reduce((cats, cat) => (cats[cat] = null, cats), {}),
                 rolls: 0,
@@ -162,10 +179,8 @@ bot.cmd('yz', (_args, _message, { channel }) => bot.msg(channel, 'Try `help yz`'
     )
     .sub(
         cmd('save', ([category], _message, { channel, user }) => {
-            if (store.get(channel) === undefined) {
-                bot.msg(channel, 'There\'s no Yahtzee! game at the moment')
-                return
-            }
+            if (noGame(channel)) return
+
             const cat = category.toLowerCase().replace(/ /g, '_')
 
             if (!rules[cat]) {
@@ -226,10 +241,8 @@ bot.cmd('yz', (_args, _message, { channel }) => bot.msg(channel, 'Try `help yz`'
     )
     .sub(
         cmd('scores', (_args, _message, { channel }) => {
-            if (store.get(channel) === undefined) {
-                bot.msg(channel, 'There\'s no Yahtzee! game at the moment')
-                return
-            }
+            if (noGame(channel)) return
+
             const { players } = store.get(channel)
             if (Object.keys(players).length === 0) {
                 bot.msg(channel, 'No scores to show')
@@ -260,14 +273,7 @@ bot.cmd('yz', (_args, _message, { channel }) => bot.msg(channel, 'Try `help yz`'
     )
     .sub(
         cmd('dice', (_args, _message, { channel, user }) => {
-            if (store.get(channel) === undefined) {
-                bot.msg(channel, 'There\'s no Yahtzee! game at the moment')
-                return
-            }
-            if (store.get([channel, 'turns']) > 0 && !store.get([channel, 'players', user.id])) {
-                bot.msg(channel, `You're not in this game ${tag(user)}`)
-                return
-            }
+            if (noGame(channel) || notInGame(channel, user)) return
 
             const player = store.get([channel, 'players', user.id])
             if (!player) {
