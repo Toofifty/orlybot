@@ -7,7 +7,9 @@ let seen = []
 fs.readFile('./data/seen.csv', 'utf8', (err, data) => {
     if (err) {
         fs.writeFile('./data/seen.csv', '', null, err => {
-            if (err) console.error
+            if (err) {
+                console.error
+            }
         })
         return
     }
@@ -15,7 +17,9 @@ fs.readFile('./data/seen.csv', 'utf8', (err, data) => {
 })
 
 bot.cmd('orly', ([subreddit = 'orlybook', sort = 'hot', time = ''], _message, { channel }) => {
-    if (time) time = `?sort=${sort}&t=${time}`
+    if (time) {
+        time = `?sort=${sort}&t=${time}`
+    }
 
     request({
         url: `https://www.reddit.com/r/${subreddit}/${sort}.json${time}`,
@@ -29,16 +33,20 @@ bot.cmd('orly', ([subreddit = 'orlybook', sort = 'hot', time = ''], _message, { 
             let i = 0
             let post, img, title
             do {
-                if (!body.data) break
+                if (!body.data) {
+                    break
+                }
                 post = body.data.children[i++].data
-                img = post['url']
-                title = post['title']
+                img = post.url
+                title = post.title
             } while (seen.indexOf(img) > -1 || img.indexOf('/comments/') > -1)
 
             bot.msg(channel, `*${title}*\n${img}`)
             seen.push(img)
             fs.writeFile('./data/seen.csv', seen.join(','), null, err => {
-                if (err) console.error(err)
+                if (err) {
+                    console.error(err)
+                }
             })
         } catch (e) {
             console.error(e)
@@ -46,7 +54,7 @@ bot.cmd('orly', ([subreddit = 'orlybook', sort = 'hot', time = ''], _message, { 
         }
     })
 })
-.arg({ name: 'subreddit', def: 'orlybooks' })
-.arg({ name: 'sort', def: 'hot' })
-.arg({ name: 'time', def: '' })
-.desc('Get posts from a subreddit')
+    .arg({ name: 'subreddit', def: 'orlybooks' })
+    .arg({ name: 'sort', def: 'hot' })
+    .arg({ name: 'time', def: '' })
+    .desc('Get posts from a subreddit')

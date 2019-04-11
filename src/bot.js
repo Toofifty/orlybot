@@ -88,7 +88,8 @@ class Bot {
             }
 
             if (args.length > 0 && this.commands[args[0]]) {
-                return this.commands[args.shift()].run(args, message, meta)
+                this.commands[args.shift()].run(args, message, meta)
+                return
             }
 
             Object.keys(this.keywords).forEach(keyword => {

@@ -3,7 +3,7 @@
  *
  * @param {string|object} user
  */
-export const tag = (user) => {
+export const tag = user => {
     if (typeof user === 'object') {
         user = user.id
     }
@@ -40,7 +40,7 @@ export const pickBy = (obj, predicate) => {
  *
  * @param {number} max
  */
-export const randint = (max) => {
+export const randint = max => {
     return Math.floor(Math.random() * max)
 }
 
@@ -48,7 +48,7 @@ export const randint = (max) => {
  * Get random hex colour
  */
 export const randcolour = () => {
-    return '#' + Math.floor(Math.random() * 0xFFFFFF).toString(16).padStart(6, '0')
+    return `#${ Math.floor(Math.random() * 0xFFFFFF).toString(16).padStart(6, '0')}`
 }
 
 /**
@@ -56,28 +56,28 @@ export const randcolour = () => {
  *
  * @param {string} str
  */
-export const ticks = (str) => `\`${str}\``
+export const ticks = str => `\`${str}\``
 
 /**
  * Wrap in 3 backticks
  *
  * @param {string} str
  */
-export const pre = (str) => ticks(ticks(ticks(str)))
+export const pre = str => ticks(ticks(ticks(str)))
 
 /**
  * Wrap in colons
  *
  * @param {string} str
  */
-export const emoji = (str) => `:${str}:`
+export const emoji = str => `:${str}:`
 
 /**
  * Get last element in array/string
  *
  * @param {any[]|string} arr
  */
-export const last = (arr) => arr[arr.length - 1]
+export const last = arr => arr[arr.length - 1]
 
 /**
  * Tokenize a string, splitting on spaces but keeping
@@ -85,12 +85,12 @@ export const last = (arr) => arr[arr.length - 1]
  *
  * @param {string} str
  */
-export const tokenize = (str) => {
+export const tokenize = str => {
     return Array
         .from(str.trim())
         .reduce(({ quote, tokens, working }, letter, i) => {
-            if (last(working) !== '\\' && !quote &&
-                (letter === '\'' || letter === '"' || letter === '`')) {
+            if (last(working) !== '\\' && !quote
+                && (letter === '\'' || letter === '"' || letter === '`')) {
                 return { quote: letter, tokens, working }
             }
             if (last(working) !== '\\' && quote === letter) {
@@ -121,7 +121,7 @@ export const table = (colHeaders, rowHeaders, data) => {
     const widths = [
         Math.max(...rowHeaders.map(col => col.length)),
         ...colHeaders.map((header, i) =>
-            Math.max(header.length, ...Object.values(data[i]).map(val => (val + '' || '').length))
+            Math.max(header.length, ...Object.values(data[i]).map(val => (`${val }` || '').length))
         )
     ]
     return [
@@ -129,7 +129,7 @@ export const table = (colHeaders, rowHeaders, data) => {
         ['', ...colHeaders].map((_h, i) => '-'.padStart(widths[i], '-')).join('-|-'),
         ...rowHeaders.map(col =>
             [col.replace(/_/g, ' ').padEnd(widths[0]), ...data.map((cell, i) =>
-                (cell[col] !== null ? cell[col] + '' : '-').padStart(widths[i + 1])
+                (cell[col] !== null ? `${cell[col] }` : '-').padStart(widths[i + 1])
             )].join(' | ')
         )
     ].join('\n')

@@ -97,10 +97,10 @@ export default class Command {
             + `${name}${def !== undefined ? `=${JSON.stringify(def)}` : ''}`
             + `${required ? '>' : ']'}`
         ).join(' ')
-        return `\`${this.keyword}${args ? ` ${args}` : ''}\` - ${this.description}`
-            + (this.hasSubs
+        return `\`${this.keyword}${args ? ` ${args}` : ''}\` - ${this.description}${
+            this.hasSubs
                 ? `\n${Object.keys(this.subs).map(key => this.subs[key].help).join('\n')}`
-                : '')
+                : ''}`
     }
 
     /**
@@ -115,6 +115,7 @@ export default class Command {
         if (sub && this.subs[sub]) {
             return this.subs[args.shift()].run(args, message, meta)
         }
+
         return this.callback(args, message, meta)
     }
 }

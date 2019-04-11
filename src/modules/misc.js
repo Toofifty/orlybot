@@ -13,8 +13,8 @@ bot.cmd('help', (args, _message, { channel }) => {
             || 'Nothing interesting happens'
     )
 })
-.arg({ name: 'cmd' })
-.desc('Get command list / usage for a command')
+    .arg({ name: 'cmd' })
+    .desc('Get command list / usage for a command')
 
 bot.cmd('joke', (_args, _message, { channel }) => {
     request('https://official-joke-api.appspot.com/random_joke', (err, _res, body) => {
@@ -27,19 +27,20 @@ bot.cmd('joke', (_args, _message, { channel }) => {
         bot.msg(channel, decode(punchline), 5000)
     })
 })
-.desc('Funny jokes lmao')
+    .desc('Funny jokes lmao')
 
 bot.cmd('roll', ([max = 6], _message, { channel, user }) => {
     const result = max > 0 && max <= 9
         ? emoji(
-            ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
-            [randint(parseInt(max) - 1)]
+            [
+                'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'
+            ][randint(parseInt(max) - 1)]
         )
         : randint(parseInt(max) + 1)
     bot.msg(channel, `${tag(user)} rolled a *${result}*`)
 })
-.arg({ name: 'sides', def: 6 })
-.desc('Roll a dice')
+    .arg({ name: 'sides', def: 6 })
+    .desc('Roll a dice')
 
 bot.kw('lorenc', (_message, { channel }) => {
     request('https://evilinsult.com/generate_insult.php?lang=en&type=json', (err, _res, body) => {

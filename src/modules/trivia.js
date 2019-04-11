@@ -49,10 +49,10 @@ bot.cmd('trivia', ([arg], _message, { channel }) => {
             bot.msg(channel, decode(`*${category}*: ${question}`))
 
             trivia.answerId = randint(4)
-            trivia.answer = decode('' + correct_answer).toLowerCase()
-            trivia.wrong = incorrect_answers.map(v => decode('' + v).toLowerCase())
+            trivia.answer = decode(`${ correct_answer}`).toLowerCase()
+            trivia.wrong = incorrect_answers.map(v => decode(`${ v}`).toLowerCase())
 
-            let answers = incorrect_answers
+            const answers = incorrect_answers
             answers.splice(trivia.answerId, 0, correct_answer)
             bot.msg(channel, decode(answers.map((a, i) => `${i + 1}. *${a}*`).join('\n')), 5000)
 
@@ -60,38 +60,38 @@ bot.cmd('trivia', ([arg], _message, { channel }) => {
         }
     )
 })
-.desc('Play trivia!')
-.arg({ name: 'difficulty', def: 'easy' })
-.sub(
-    cmd('cancel', (_args, _message, { channel }) => {
-        if (trivia.answerId === null) {
-            bot.msg(channel, 'There\'s no trivia game at the moment')
-            return
-        }
-        bot.msg(channel, 'Trivia has been cancelled :\'(')
-        trivia.reset()
-    })
-    .desc('Cancel the current trivia game')
-)
-.sub(
-    cmd('score', ([player], _message, { channel }) => {
-        if (player) {
+    .desc('Play trivia!')
+    .arg({ name: 'difficulty', def: 'easy' })
+    .sub(
+        cmd('cancel', (_args, _message, { channel }) => {
+            if (trivia.answerId === null) {
+                bot.msg(channel, 'There\'s no trivia game at the moment')
+                return
+            }
+            bot.msg(channel, 'Trivia has been cancelled :\'(')
+            trivia.reset()
+        })
+            .desc('Cancel the current trivia game')
+    )
+    .sub(
+        cmd('score', ([player], _message, { channel }) => {
+            if (player) {
+                bot.msg(
+                    channel,
+                    `${tag(bot.getUser(player))} has *${userdata.get(
+                        bot.getUser(player), 'trivia_wins', 0
+                    )}* trivia wins`
+                )
+                return
+            }
             bot.msg(
                 channel,
-                `${tag(bot.getUser(player))} has *${userdata.get(
-                    bot.getUser(player), 'trivia_wins', 0
-                )}* trivia wins`
+                userdata.allUsers.map(userId => {
+                    const { name } = bot.getUserById(userId)
+                    return `*${name}* - ${userdata.get(userId, 'trivia_wins', 0)} wins`
+                }).join('\n')
             )
-            return
-        }
-        bot.msg(
-            channel,
-            userdata.allUsers.map(userId => {
-                const { name } = bot.getUserById(userId)
-                return `*${name}* - ${userdata.get(userId, 'trivia_wins', 0)} wins`
-            }).join('\n')
-        )
-    })
-    .arg({ name: 'user' })
-    .desc('Get trivia win counts')
-)
+        })
+            .arg({ name: 'user' })
+            .desc('Get trivia win counts')
+    )

@@ -13,10 +13,13 @@ class UserData {
      * @param {any} value
      */
     set (user, key, value) {
-        if (typeof user === 'object') user = user.id
+        if (typeof user === 'object') {
+            user = user.id
+        }
         if (!this.store.get(user)) {
             this.store.commit(user, {})
         }
+
         return this.store.commit([user, key], value)
     }
 
@@ -28,12 +31,16 @@ class UserData {
      * @param {any} def default
      */
     get (user, key, def = null) {
-        if (typeof user === 'object') user = user.id
+        if (typeof user === 'object') {
+            user = user.id
+        }
         return this.store.get([user, key], def)
     }
 
     all (user) {
-        if (typeof user === 'object') user = user.id
+        if (typeof user === 'object') {
+            user = user.id
+        }
         return this.store.get(user)
     }
 

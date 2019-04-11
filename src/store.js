@@ -53,7 +53,7 @@ export default class Store {
      * @param {string|string[]} path
      * @return {string[]}
      */
-    _parts (path) {
+    static _parts (path) {
         if (Array.isArray(path)) {
             return path
         }

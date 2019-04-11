@@ -23,11 +23,11 @@ bot.cmd('_priv', (_args, _message, { user }) => {
     bot.priv(user, 'hello!')
 }).hide()
 
-bot.cmd('_eval', ([code], { text }, { user, channel }) => {
+bot.cmd('_eval', ([code], { _text }, { channel }) => {
     bot.msg(channel, pre(eval(code)))
 }).hide()
 
-bot.cmd('_kw', (_args, _message, { channel, user }) => {
+bot.cmd('_kw', (_args, _message, { channel }) => {
     bot.msg(
         channel,
         Object.keys(bot.keywords).map(ticks).join(' ') || 'Nothing interesting happens.'

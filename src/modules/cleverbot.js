@@ -2,7 +2,7 @@ import bot from '../bot'
 import cleverbotIO from 'cleverbot.io'
 import { tag } from '../util'
 
-if (process.env.CLEVERBOT_ENABLED !== "0") {
+if (process.env.CLEVERBOT_ENABLED !== '0') {
     const NAME = 'Fred'
 
     const cleverbot = new cleverbotIO(
@@ -11,7 +11,7 @@ if (process.env.CLEVERBOT_ENABLED !== "0") {
     )
 
     cleverbot.setNick(NAME)
-    cleverbot.create((err, sess) => {
+    cleverbot.create((err, _sess) => {
         if (err) {
             console.error(err)
             return

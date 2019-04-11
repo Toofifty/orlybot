@@ -9,13 +9,16 @@
         "@babel/core": "^7.4.3",
         "@babel/node": "^7.2.2",
         "@babel/preset-env": "^7.4.3",
+        "babel-eslint": "^10.0.1",
         "cleverbot.io": "^1.0.4",
         "decode-html": "^2.0.0",
         "dotenv": "^7.0.0",
+        "eslint": "^5.16.0",
         "nodemon": "^1.18.10",
         "slackbots": "^1.2.0"
     },
     "scripts": {
-        "bot": "nodemon --watch src --exec babel-node src/orly.js"
+        "bot": "nodemon --watch src --exec 'yarn lint && babel-node' src/orly.js",
+        "lint": "./node_modules/eslint/bin/eslint.js src"
     }
 }
