@@ -25,12 +25,12 @@ bot.cmd('crypto', ([primary = 'BTC', secondary = 'USD'], _message, { channel }) 
                     fields: [
                         {
                             title: 'Price',
-                            value: `${content.PRICE < 1 ? content.PRICE : content.PRICE.toLocaleString()} ${content.TOSYMBOL}`,
+                            value: `${content.PRICE.toFixed(6)} ${content.TOSYMBOL}`,
                             short: true
                         },
                         {
                             title: 'Market Cap',
-                            value: `${content.MKTCAP < 1 ? content.MKTCAP : content.MKTCAP.toLocaleString()} ${content.TOSYMBOL}`,
+                            value: `${content.MKTCAP.toFixed(6)} ${content.TOSYMBOL}`,
                             short: true
                         }
                     ],
