@@ -74,6 +74,7 @@
         "arrow-spacing": "error",
         "no-var": "error",
         "object-shorthand": "error",
-        "prefer-template": "error"
+        "prefer-template": "error",
+        "template-curly-spacing": ["error", "never"]
     }
 }

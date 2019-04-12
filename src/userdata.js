@@ -2,7 +2,7 @@ import Store from './store'
 
 class UserData {
     constructor () {
-        this.store = new Store('userdata', {})
+        this.store = Store.create('userdata', {})
     }
 
     /**

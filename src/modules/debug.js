@@ -1,6 +1,7 @@
 import bot from '../bot'
 import { tag, ticks, pre } from '../util'
 import userdata from '../userdata'
+import Store from '../store'
 
 bot.cmd('_users', (_args, _message, { channel }) => {
     bot.msg(channel, JSON.stringify(bot.users))
@@ -17,6 +18,10 @@ bot.cmd('_me', (_args, _message, { user, channel }) => {
 bot.cmd('_userdata', ([other], _message, { user, channel }) => {
     if (other) user = bot.getUser(other)
     bot.msg(channel, pre(JSON.stringify(userdata.all(user))))
+}).hide()
+
+bot.cmd('_store', async ([store], _message, { channel }) => {
+    bot.msg(channel, pre(JSON.stringify((await Store.createAsync(store)).data)))
 }).hide()
 
 bot.cmd('_priv', (_args, _message, { user }) => {

@@ -49,8 +49,8 @@ bot.cmd('trivia', ([arg], _message, { channel }) => {
             bot.msg(channel, decode(`*${category}*: ${question}`))
 
             trivia.answerId = randint(4)
-            trivia.answer = decode(`${ correct_answer}`).toLowerCase()
-            trivia.wrong = incorrect_answers.map(v => decode(`${ v}`).toLowerCase())
+            trivia.answer = decode(`${correct_answer}`).toLowerCase()
+            trivia.wrong = incorrect_answers.map(v => decode(`${v}`).toLowerCase())
 
             const answers = incorrect_answers
             answers.splice(trivia.answerId, 0, correct_answer)

@@ -3,7 +3,7 @@ import { cmd } from '../command'
 import Store from '../store'
 import { pre, tag, emoji, randint, table } from '../util'
 
-const store = new Store('yahtzee', {})
+const store = Store.create('yahtzee', {})
 
 /**
  * Sum of dice
@@ -38,7 +38,7 @@ const ofAKind = (dice, n) => {
     const kinds = dice.reduce((kinds, dice) => {
         kinds[dice - 1]++
         return kinds
-    }, [0, 0, 0, 0, 0])
+    }, [0, 0, 0, 0, 0, 0])
     return kinds.filter(kind => kind >= n).length > 0
 }
 
@@ -51,7 +51,7 @@ const isFullHouse = dice => {
     const kinds = dice.reduce((kinds, dice) => {
         kinds[dice - 1]++
         return kinds
-    }, [0, 0, 0, 0, 0])
+    }, [0, 0, 0, 0, 0, 0])
     return kinds.filter(kind => kind === 2).length > 0
         && kinds.filter(kind => kind === 3).length > 0
 }
@@ -97,7 +97,7 @@ const diceStatus = (user, dice) => `${tag(user)}: ${dice.map(diceEmoji).join(' '
  */
 const noGame = channel => {
     if (store.get(channel) === undefined) {
-        bot.msg(channel, 'There\'s no Yahtzee! game at the moment')
+        bot.msg(channel, `There's no Yahtzee! game at the moment in *#${channel}*`)
         return true
     }
     return false
@@ -117,6 +117,25 @@ const notInGame = (channel, user) => {
     return false
 }
 
+const getTotal = player => {
+    const {
+        ones, twos, threes, fours, fives, sixes,
+        three_of_a_kind, four_of_a_kind, full_house,
+        small_straight, large_straight, yahtzee, chance
+    } = player.categories
+    const upper_section = ones + twos + threes + fours + fives + sixes
+    const lower_section = three_of_a_kind + four_of_a_kind + full_house
+    + small_straight + large_straight + yahtzee + chance
+    return {
+        ...player.categories,
+        upper_section,
+        lower_section,
+        total: upper_section + lower_section
+    }
+}
+
+const getTotals = players => Object.values(players).map(getTotal)
+
 bot.cmd('yz', (_args, _message, { channel }) => bot.msg(channel, 'Try `help yz`'))
     .desc('Play Yahtzee!')
     .sub(
@@ -128,13 +147,13 @@ bot.cmd('yz', (_args, _message, { channel }) => bot.msg(channel, 'Try `help yz`'
                 return
             }
 
-            bot.msg(channel, 'Starting a new game of Yahtzee!')
             store.commit(channel, {
                 players: {},
                 turn: 0
             })
+            bot.msg(channel, 'Starting a new game of Yahtzee!')
         })
-            .desc('Create a new game of Yahtzee@')
+            .desc('Create a new game of Yahtzee!')
     )
     .sub(
         cmd('cancel', (_args, _message, { channel, user }) => {
@@ -178,8 +197,9 @@ bot.cmd('yz', (_args, _message, { channel }) => bot.msg(channel, 'Try `help yz`'
             .arg({ name: 'dice-numbers', def: '1,2,3,4,5' })
     )
     .sub(
-        cmd('save', ([category], _message, { channel, user }) => {
+        cmd('save', (category, _message, { channel, user }) => {
             if (noGame(channel)) return
+            category = category.join(' ')
 
             const cat = category.toLowerCase().replace(/ /g, '_')
 
@@ -251,22 +271,7 @@ bot.cmd('yz', (_args, _message, { channel }) => bot.msg(channel, 'Try `help yz`'
             bot.msg(channel, pre(table(
                 Object.keys(players).map(player => bot.getUserById(player).name),
                 [...Object.keys(rules), 'upper_section', 'lower_section', 'total'],
-                Object.values(players).map(player => {
-                    const {
-                        ones, twos, threes, fours, fives, sixes,
-                        three_of_a_kind, four_of_a_kind, full_house,
-                        small_straight, large_straight, yahtzee, chance
-                    } = player.categories
-                    const upper_section = ones + twos + threes + fours + fives + sixes
-                    const lower_section = three_of_a_kind + four_of_a_kind + full_house
-                    + small_straight + large_straight + yahtzee + chance
-                    return {
-                        ...player.categories,
-                        upper_section,
-                        lower_section,
-                        total: upper_section + lower_section
-                    }
-                })
+                getTotals(players)
             )))
         })
             .desc('Print the scoresheet')
@@ -318,4 +323,9 @@ bot.cmd('yz', (_args, _message, { channel }) => bot.msg(channel, 'Try `help yz`'
             )))
         })
             .desc('Get Yahtzee! game help')
+    )
+    .sub(
+        cmd('_eval', ([code], _message, { channel }) => {
+            bot.msg(channel, pre(eval(code)))
+        }).hide()
     )

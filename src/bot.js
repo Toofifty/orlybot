@@ -87,6 +87,8 @@ class Bot {
                 user: this.users[message.user]
             }
 
+            if (meta.user.name === 'lorenc') return
+
             if (args.length > 0 && this.commands[args[0]]) {
                 this.commands[args.shift()].run(args, message, meta)
                 return

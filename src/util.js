@@ -1,3 +1,6 @@
+import fs from 'fs'
+import { promisify } from 'util'
+
 /**
  * Slack tag
  *
@@ -48,7 +51,7 @@ export const randint = max => {
  * Get random hex colour
  */
 export const randcolour = () => {
-    return `#${ Math.floor(Math.random() * 0xFFFFFF).toString(16).padStart(6, '0')}`
+    return `#${Math.floor(Math.random() * 0xFFFFFF).toString(16).padStart(6, '0')}`
 }
 
 /**
@@ -121,7 +124,7 @@ export const table = (colHeaders, rowHeaders, data) => {
     const widths = [
         Math.max(...rowHeaders.map(col => col.length)),
         ...colHeaders.map((header, i) =>
-            Math.max(header.length, ...Object.values(data[i]).map(val => (`${val }` || '').length))
+            Math.max(header.length, ...Object.values(data[i]).map(val => (`${val}` || '').length))
         )
     ]
     return [
@@ -129,8 +132,11 @@ export const table = (colHeaders, rowHeaders, data) => {
         ['', ...colHeaders].map((_h, i) => '-'.padStart(widths[i], '-')).join('-|-'),
         ...rowHeaders.map(col =>
             [col.replace(/_/g, ' ').padEnd(widths[0]), ...data.map((cell, i) =>
-                (cell[col] !== null ? `${cell[col] }` : '-').padStart(widths[i + 1])
+                (cell[col] !== null ? `${cell[col]}` : '-').padStart(widths[i + 1])
             )].join(' | ')
         )
     ].join('\n')
 }
+
+export const readfile = promisify(fs.readFile)
+export const writefile = promisify(fs.writeFile)

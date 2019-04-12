@@ -1,11 +1,11 @@
-import fs from 'fs'
+import { readfile, writefile } from './util'
 
 /**
  * Persistent data storage
  *
  * Usage:
  *
- * const store = new Store('name', {
+ * const store = Store.create('name', {
  *     value: 'default',
  *     other: {
  *         more: 'values'
@@ -22,29 +22,39 @@ export default class Store {
     constructor (name, initial) {
         this.name = name
         this.data = { ...initial }
-        this._load()
+    }
+
+    static create (name, initial) {
+        const store = new Store(name, initial)
+        store._load()
+        return store
+    }
+
+    static async createAsync (name, initial) {
+        const store = new Store(name, initial)
+        await store._load()
+        return store
     }
 
     get file () {
         return `./data/${this.name}.json`
     }
 
-    _load () {
-        fs.readFile(this.file, 'utf8', (err, data) => {
-            if (err) {
-                this._save()
-                return
-            }
-            if (data) {
-                this.data = JSON.parse(data || '{}')
-            }
-        })
+    async _load () {
+        try {
+            const data = await readfile(this.file, 'utf8')
+            this.data = JSON.parse(data || '{}')
+        } catch (err) {
+            this._save()
+        }
     }
 
-    _save () {
-        fs.writeFile(this.file, JSON.stringify(this.data), null, err => {
-            if (err) console.error(err)
-        })
+    async _save () {
+        try {
+            await writefile(this.file, JSON.stringify(this.data))
+        } catch (err) {
+            console.error(err)
+        }
     }
 
     /**
@@ -68,14 +78,16 @@ export default class Store {
      */
     commit (path, value) {
         try {
-            const props = this._parts(path)
+            const props = Store._parts(path)
             const target = props.pop()
             const item = props.reduce((item, prop) => item[prop], this.data)
             item[target] = value
             this._save()
             return value
-        } catch (e) {
-            throw new TypeError(`Invalid path name in ${this.name} store: ${path}`)
+        } catch (err) {
+            throw new TypeError(
+                `Invalid path name in ${this.name} store: ${Store._parts(path).join('/')}`
+            )
         }
     }
 
@@ -87,10 +99,10 @@ export default class Store {
      */
     get (path, def) {
         try {
-            const result = this._parts(path).reduce((item, prop) => item[prop], this.data)
+            const result = Store._parts(path).reduce((item, prop) => item[prop], this.data)
             if (result === undefined) throw 'reee'
             return result
-        } catch (e) {
+        } catch (err) {
             if (def) this.commit(path, def)
             return def
         }
