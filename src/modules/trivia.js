@@ -11,7 +11,7 @@ const incorrect = (_message, { channel, user }) => {
 
 const correct = (_message, { channel, user }) => {
     const wins = userdata.set(user, 'trivia_wins', userdata.get(user, 'trivia_wins', 0) + 1)
-    bot.msg(channel, `You got it ${tag(user)}! You've won ${wins} trivias :)`)
+    bot.msg(channel, `You got it ${tag(user)}! You've won ${wins.toLocaleString()} trivias :)`)
     trivia.reset()
 }
 

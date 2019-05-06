@@ -81,20 +81,25 @@ class Bot {
 
             if (!message.text) return
 
-            const args = tokenize(message.text)
+            const terms = message.text.split('&amp;&amp;')
             const meta = {
                 channel: this.channels[message.channel].name,
                 user: this.users[message.user]
             }
 
-            if (args.length > 0 && this.commands[args[0]]) {
-                this.commands[args.shift()].run(args, message, meta)
-                return
-            }
+            terms.forEach(term => {
+                const args = tokenize(term.trim())
+                console.log(args)
 
-            Object.keys(this.keywords).forEach(keyword => {
-                if (message.text.toLowerCase().includes(keyword)) {
-                    this.keywords[keyword](message, meta)
+
+                if (args.length > 0 && this.commands[args[0]]) {
+                    this.commands[args.shift()].run(args, message, meta)
+                } else {
+                    Object.keys(this.keywords).forEach(keyword => {
+                        if (term.toLowerCase().includes(keyword)) {
+                            this.keywords[keyword](message, meta)
+                        }
+                    })
                 }
             })
         })

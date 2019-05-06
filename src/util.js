@@ -1,5 +1,6 @@
 import fs from 'fs'
 import { promisify } from 'util'
+import bot from './bot'
 
 /**
  * Slack tag
@@ -11,6 +12,14 @@ export const tag = user => {
         user = user.id
     }
     return `<@${user}>`
+}
+/**
+ * Get user from slack tag
+ *
+ * @param {string} tag
+ */
+export const userFromTag = tag => {
+    return bot.getUserById(tag.substring(2, tag.length - 1))
 }
 
 /**

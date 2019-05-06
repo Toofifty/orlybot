@@ -52,3 +52,7 @@ bot.kw('lorenc', (_message, { channel }) => {
         bot.msg(channel, decode(insult))
     })
 })
+
+bot.cmd('poker', (_args, _message, { channel }) => {
+    bot.msg(channel, 'lmao u wish')
+}).desc('Play a game of poker!')
