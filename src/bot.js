@@ -1,7 +1,7 @@
 import Slackbot from 'slackbots'
 import fs from 'fs'
 import Command from './command'
-import { pickBy, tokenize, find } from './util'
+import { pickBy, tokenize, find, pre } from './util'
 
 const IGNORE_TYPE = ['error', 'hello', 'user_typing']
 const IGNORE_SUBTYPE = ['bot_message', 'channel_join']
@@ -91,13 +91,22 @@ class Bot {
                 const args = tokenize(term.trim())
                 console.log(args)
 
-
                 if (args.length > 0 && this.commands[args[0]]) {
-                    this.commands[args.shift()].run(args, message, meta)
+                    try {
+                        this.commands[args.shift()].run(args, message, meta)
+                    } catch (err) {
+                        this.msg(meta.channel, pre(`!! ${err}`))
+                        throw err
+                    }
                 } else {
                     Object.keys(this.keywords).forEach(keyword => {
                         if (term.toLowerCase().includes(keyword)) {
-                            this.keywords[keyword](message, meta)
+                            try {
+                                this.keywords[keyword](message, meta)
+                            } catch (err) {
+                                this.msg(meta.channel, pre(`!! ${err}`))
+                                throw err
+                            }
                         }
                     })
                 }
