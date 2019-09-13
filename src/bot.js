@@ -2,6 +2,7 @@ import Slackbot from 'slackbots'
 import fs from 'fs'
 import Command from './command'
 import { pickBy, tokenize, find, pre } from './util'
+import UserError from './user-error'
 
 const IGNORE_TYPE = ['error', 'hello', 'user_typing']
 const IGNORE_SUBTYPE = ['bot_message', 'channel_join']
@@ -82,9 +83,12 @@ class Bot {
             if (!message.text) return
 
             const terms = message.text.split('&amp;&amp;')
+            const channel = this.channels[message.channel].name
             const meta = {
-                channel: this.channels[message.channel].name,
-                user: this.users[message.user]
+                message,
+                channel,
+                user: this.users[message.user],
+                msg: text => this.msg(channel, text)
             }
 
             terms.forEach(term => {
@@ -93,19 +97,27 @@ class Bot {
 
                 if (args.length > 0 && this.commands[args[0]]) {
                     try {
-                        this.commands[args.shift()].run(args, message, meta)
+                        this.commands[args.shift()].run(args, message, { ...meta, args })
                     } catch (err) {
-                        this.msg(meta.channel, pre(`!! ${err}`))
-                        throw err
+                        if (err instanceof UserError) {
+                            this.msg(meta.channel, err.message)
+                        } else {
+                            this.msg(meta.channel, pre(`!! ${err}`))
+                            throw err
+                        }
                     }
                 } else {
                     Object.keys(this.keywords).forEach(keyword => {
                         if (term.toLowerCase().includes(keyword)) {
                             try {
-                                this.keywords[keyword](message, meta)
+                                this.keywords[keyword](message, { ...meta, args })
                             } catch (err) {
-                                this.msg(meta.channel, pre(`!! ${err}`))
-                                throw err
+                                if (err instanceof UserError) {
+                                    this.msg(meta.channel, err.message)
+                                } else {
+                                    this.msg(meta.channel, pre(`!! ${err}`))
+                                    throw err
+                                }
                             }
                         }
                     })
