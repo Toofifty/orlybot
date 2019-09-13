@@ -1,8 +1,9 @@
 import bot from '../bot'
 import request from 'request'
 import { randcolour } from '../util'
+import { error } from '../user-error'
 
-bot.cmd('crypto', ([primary = 'BTC', secondary = 'USD'], _message, { channel }) => {
+bot.cmd('crypto', ({ channel }, [primary = 'BTC', secondary = 'USD']) => {
     primary = primary.toUpperCase()
     secondary = secondary.toUpperCase()
 
@@ -11,37 +12,29 @@ bot.cmd('crypto', ([primary = 'BTC', secondary = 'USD'], _message, { channel }) 
             + `?fsyms=${primary}&tsyms=${secondary}&api_key=${process.env.CRYPTO_API}`,
         json: true
     }, (err, _res, body) => {
-        if (err) {
-            console.error(err)
-            return
-        }
-        try {
-            const content = body.RAW[primary][secondary]
-            bot.msgAttachment(channel, '', {
-                attachments: [{
-                    fallback: 'Lorenc sucks ass',
-                    color: randcolour(),
-                    title: `${primary}/${secondary} Price Information`,
-                    fields: [
-                        {
-                            title: 'Price',
-                            value: `${content.PRICE.toFixed(6)} ${content.TOSYMBOL}`,
-                            short: true
-                        },
-                        {
-                            title: 'Market Cap',
-                            value: `${content.MKTCAP.toFixed(6)} ${content.TOSYMBOL}`,
-                            short: true
-                        }
-                    ],
-                    thumb_url: `https://www.cryptocompare.com/${content.IMAGEURL}`,
-                    ts: +Date.now() / 1000
-                }]
-            })
-        } catch (e) {
-            console.error(e)
-            bot.msg(channel, e)
-        }
+        if (err) error(err)
+        const content = body.RAW[primary][secondary]
+        bot.msgAttachment(channel, '', {
+            attachments: [{
+                fallback: 'Lorenc sucks ass',
+                color: randcolour(),
+                title: `${primary}/${secondary} Price Information`,
+                fields: [
+                    {
+                        title: 'Price',
+                        value: `${content.PRICE.toFixed(6)} ${content.TOSYMBOL}`,
+                        short: true
+                    },
+                    {
+                        title: 'Market Cap',
+                        value: `${content.MKTCAP.toFixed(6)} ${content.TOSYMBOL}`,
+                        short: true
+                    }
+                ],
+                thumb_url: `https://www.cryptocompare.com/${content.IMAGEURL}`,
+                ts: +Date.now() / 1000
+            }]
+        })
     })
 })
     .desc('Shows the current price of a particular cryptocurrency pair.')

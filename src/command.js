@@ -38,7 +38,13 @@ export default class Command {
     /**
      * Add callback
      *
-     * @param {({ args: string[], message: any, meta: { channel: any, user: any }}) => any)} description
+     * @param {({
+     *      channel: string,
+     *      user,
+     *      args: string[],
+     *      message: { text: string },
+     *      msg: (text) => void
+     * }, args: string) => any)} description
      */
     do (callback) {
         return this.set({ callback })
@@ -106,16 +112,22 @@ export default class Command {
     /**
      * Run command
      *
+     * @param {{
+     *      channel: string,
+     *      user,
+     *      args: string[],
+     *      message: { text: string },
+     *      msg: (text) => void
+     * }} context
      * @param {string[]} args
-     * @param {any} message
-     * @param {{ channel: any, user: any }} meta
+     * @return {any}
      */
-    run (args, message, meta) {
+    run (context, args) {
         const [sub] = args
         if (sub && this.subs[sub]) {
-            return this.subs[args.shift()].run(args, message, meta)
+            return this.subs[args.shift()].run(context, args)
         }
 
-        return this.callback(args, message, meta)
+        return this.callback(context, args)
     }
 }

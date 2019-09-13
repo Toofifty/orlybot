@@ -13,9 +13,7 @@ const numberEmoji = n => emoji([
     'one', 'two', 'three', 'four', 'five', 'six', 'seven'
 ][n - 1])
 
-const gamename = (...users) => {
-    return users.map(u => u.id).sort().join('')
-}
+const gamename = (...users) => users.map(u => u.id).sort().join('')
 
 const gameboard = (...users) => {
     const board = store.get([gamename(...users), 'board'])
@@ -26,23 +24,19 @@ const gameboard = (...users) => {
     ].join('\n')
 }
 
-// const checkwin = board => {
-
-// }
-
 const store = Store.create('connect4', {})
 
-bot.cmd('c4', (_args, _message, { channel }) => bot.msg(channel, 'Try `help c4`'))
+bot.cmd('c4', ({ msg }) => msg('Try `help c4`'))
     .desc('Play connect 4!')
     .sub(
-        cmd('new', ([otherTag], _message, { user, channel }) => {
+        cmd('new', ({ user, msg }, [otherTag]) => {
             const other = userFromTag(otherTag)
             if (!other) {
-                bot.msg(channel, `I don't know who ${otherTag} is`)
+                msg(`I don't know who ${otherTag} is`)
                 return
             }
             if (store.get(gamename(user, other)) !== undefined) {
-                bot.msg(channel, `You're already in a game with ${otherTag}!`)
+                msg(`You're already in a game with ${otherTag}!`)
                 return
             }
 
@@ -51,47 +45,47 @@ bot.cmd('c4', (_args, _message, { channel }) => bot.msg(channel, 'Try `help c4`'
                 turn: 0,
                 players: [user, other]
             })
-            bot.msg(channel, `Starting new game between ${tag(user)} and ${otherTag}`)
-            bot.msg(channel, gameboard(user, other))
+            msg(`Starting new game between ${tag(user)} and ${otherTag}`)
+            msg(gameboard(user, other))
         })
     )
     .sub(
-        cmd('board', ([otherTag], _message, { user, channel }) => {
+        cmd('board', ({ user, msg }, [otherTag]) => {
             const other = userFromTag(otherTag)
             if (!other) {
-                bot.msg(channel, `I don't know who ${otherTag} is`)
+                msg(`I don't know who ${otherTag} is`)
                 return
             }
             if (store.get(gamename(user, other)) === undefined) {
                 bot.msg(`You're not in a game with ${otherTag}`)
                 return
             }
-            bot.msg(channel, gameboard(user, other))
+            msg(gameboard(user, other))
         })
     )
     .sub(
-        cmd('place', ([column, otherTag], _message, { user, channel }) => {
+        cmd('place', ({ user, msg }, [column, otherTag]) => {
             if (!otherTag) {
-                bot.msg(channel, `You need to tag who you're playing against, like \`c4 place ${column} @user\``)
+                msg(`You need to tag who you're playing against, like \`c4 place ${column} @user\``)
                 return
             }
             const other = userFromTag(otherTag)
             if (!other) {
-                bot.msg(channel, `I don't know who ${otherTag} is`)
+                msg(`I don't know who ${otherTag} is`)
                 return
             }
             const game = store.get(gamename(user, other))
             if (game === undefined) {
-                bot.msg(channel, `You're not in a game with ${otherTag}`)
+                msg(`You're not in a game with ${otherTag}`)
                 return
             }
             if (user.id !== game.players[game.turn].id) {
-                bot.msg(channel, `It's not your turn ${tag(user)}`)
+                msg(`It's not your turn ${tag(user)}`)
                 return
             }
             column = parseInt(column)
             if (!column || column < 1 || column > 7) {
-                bot.msg(channel, `Not a valid column ${tag(user)}`)
+                msg(`Not a valid column ${tag(user)}`)
                 return
             }
             for (let i = 5; i >= 0; i--) {
@@ -103,26 +97,26 @@ bot.cmd('c4', (_args, _message, { channel }) => bot.msg(channel, 'Try `help c4`'
                     break
                 }
             }
-            bot.msg(channel, gameboard(user, other))
+            msg(gameboard(user, other))
         })
     )
     .sub(
-        cmd('cancel', ([otherTag], _message, { user, channel }) => {
+        cmd('cancel', ({ user, msg }, [otherTag]) => {
             const other = userFromTag(otherTag)
             if (!other) {
-                bot.msg(channel, `I don't know who ${otherTag} is`)
+                msg(`I don't know who ${otherTag} is`)
                 return
             }
             if (store.get(gamename(user, other)) === undefined) {
                 bot.msg(`You're not in a game with ${otherTag}`)
                 return
             }
-            bot.msg(channel, 'Game over man, game over')
+            msg('Game over man, game over')
             store.commit(gamename(user, other), undefined)
         })
     )
     .sub(
-        cmd('_eval', ([code], _message, { channel }) => {
-            bot.msg(channel, pre(eval(code)))
+        cmd('_eval', ({ msg }, [code]) => {
+            msg(pre(eval(code)))
         }).hide()
     )

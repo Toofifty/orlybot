@@ -1,4 +1,4 @@
-export const err = msg => {
+export const error = msg => {
     throw new UserError(msg)
 }
 

@@ -5,50 +5,48 @@ import { toCards } from './card'
 import { renderHand, renderMini } from './render'
 import Store from '../../store'
 import { create as createDeck, shuffle, draw } from './deck'
-import { err } from '../../user-error'
+import { error } from '../../user-error'
 
 const store = new Store('cards', { deck: [] })
 
-bot.cmd('cards', (_args, _message, { channel }) => bot.msg(channel, 'Try `help cards`'))
+bot.cmd('cards', ({ msg }) => msg('Try `help cards`'))
     .desc('Card and deck commands')
     .sub(
-        cmd('render', (args, _message, { channel }) => {
-            bot.msg(channel, pre(renderHand(toCards(args))))
-        })
+        cmd('render', ({ msg }, args) => msg(pre(renderHand(toCards(args)))))
             .desc('Render one or more cards')
             .arg({ name: 'cards', required: true })
     )
 
-bot.cmd('deck', (_args, _message, { channel }) => {
+bot.cmd('deck', ({ msg }) => {
     const deck = store.get('deck')
     if (deck.length === 0) {
-        err('No deck stored - generate one with `deck new`')
+        error('No deck stored - generate one with `deck new`')
     }
-    bot.msg(channel, deck.map(renderMini).join(', '))
+    msg(deck.map(renderMini).join(', '))
 })
     .desc('Print the current deck')
     .sub(
-        cmd('new', (_args, _message, { channel }) => {
+        cmd('new', ({ msg }) => {
             store.commit('deck', createDeck())
-            bot.msg(channel, 'Generated a new deck')
+            msg('Generated a new deck')
         })
             .desc('Generate a new deck')
     )
     .sub(
-        cmd('shuffle', (_args, _message, { channel }) => {
+        cmd('shuffle', ({ msg }) => {
             const deck = store.get('deck')
             store.commit('deck', shuffle(deck))
-            bot.msg(channel, 'Shuffled deck')
+            msg('Shuffled deck')
         })
             .desc('Shuffle the current deck')
     )
     .sub(
-        cmd('draw', ([num = 1], _message, { channel }) => {
+        cmd('draw', ({ msg }, [num = 1]) => {
             const deck = store.get('deck')
             const { cards, deck: newDeck } = draw(deck, num)
             store.commit('deck', newDeck)
-            bot.msg(channel, `Drew ${cards.length} cards`)
-            bot.msg(channel, pre(renderHand(cards)))
+            msg(`Drew ${cards.length} cards`)
+            msg(pre(renderHand(cards)))
         })
             .desc('Draw cards from the top of the deck')
             .arg({ name: 'num', def: 1 })

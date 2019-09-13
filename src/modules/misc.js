@@ -3,33 +3,31 @@ import { pickBy, emoji, randint, tag } from '../util'
 import request from 'request'
 import decode from 'decode-html'
 
-bot.cmd('help', (args, _message, { channel }) => {
-    const [cmd] = args
+bot.cmd('help', ({ msg }, [cmd]) => {
     let commands = bot.getCommands()
     if (cmd) commands = pickBy(commands, key => key === cmd)
-    bot.msg(
-        channel,
+    msg(
         Object.keys(commands).map(key => commands[key].help).join('\n')
-            || 'Nothing interesting happens'
+        || 'Nothing interesting happens'
     )
 })
     .arg({ name: 'cmd' })
     .desc('Get command list / usage for a command')
 
-bot.cmd('joke', (_args, _message, { channel }) => {
+bot.cmd('joke', ({ msg }) => {
     request('https://official-joke-api.appspot.com/random_joke', (err, _res, body) => {
         if (err) {
             console.error(err)
             return
         }
         const { setup, punchline } = JSON.parse(body)
-        bot.msg(channel, decode(setup))
-        bot.msg(channel, decode(punchline), 5000)
+        msg(decode(setup))
+        msg(decode(punchline), 5000)
     })
 })
     .desc('Funny jokes lmao')
 
-bot.cmd('roll', ([max = 6], _message, { channel, user }) => {
+bot.cmd('roll', ({ msg, user }, [max = 6]) => {
     const result = max > 0 && max <= 9
         ? emoji(
             [
@@ -37,22 +35,11 @@ bot.cmd('roll', ([max = 6], _message, { channel, user }) => {
             ][randint(parseInt(max) - 1)]
         )
         : randint(parseInt(max) + 1)
-    bot.msg(channel, `${tag(user)} rolled a *${result}*`)
+    msg(`${tag(user)} rolled a *${result}*`)
 })
     .arg({ name: 'sides', def: 6 })
     .desc('Roll a dice')
 
-bot.kw('lorenc', (_message, { channel }) => {
-    request('https://evilinsult.com/generate_insult.php?lang=en&type=json', (err, _res, body) => {
-        if (err) {
-            console.error(err)
-            return
-        }
-        const { insult } = JSON.parse(body)
-        bot.msg(channel, decode(insult))
-    })
-})
-
-bot.cmd('poker', (_args, _message, { channel }) => {
-    bot.msg(channel, 'lmao u wish')
+bot.cmd('poker', ({ msg }) => {
+    msg('lmao u wish')
 }).desc('Play a game of poker!')

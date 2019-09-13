@@ -1,6 +1,7 @@
 import bot from '../bot'
 import cleverbotIO from 'cleverbot.io'
 import { tag } from '../util'
+import { error } from '../user-error'
 
 if (process.env.CLEVERBOT_ENABLED !== '0') {
     const NAME = 'Fred'
@@ -12,17 +13,11 @@ if (process.env.CLEVERBOT_ENABLED !== '0') {
 
     cleverbot.setNick(NAME)
     cleverbot.create((err, _sess) => {
-        if (err) {
-            console.error(err)
-            return
-        }
-        bot.kw(NAME.toLowerCase(), ({ text }, { channel, user }) => {
-            cleverbot.ask(text, (err, res) => {
-                if (err) {
-                    console.error(err)
-                    return
-                }
-                bot.msg(channel, `${tag(user)}: ${res}`)
+        if (err) error(err)
+        bot.kw(NAME.toLowerCase(), ({ msg, user }, message) => {
+            cleverbot.ask(message, (err, res) => {
+                if (err) error(err)
+                msg(`${tag(user)}: ${res}`)
             })
         })
     })

@@ -125,7 +125,7 @@ const getTotal = player => {
     } = player.categories
     const upper_section = ones + twos + threes + fours + fives + sixes
     const lower_section = three_of_a_kind + four_of_a_kind + full_house
-    + small_straight + large_straight + yahtzee + chance
+        + small_straight + large_straight + yahtzee + chance
     return {
         ...player.categories,
         upper_section,
@@ -136,14 +136,14 @@ const getTotal = player => {
 
 const getTotals = players => Object.values(players).map(getTotal)
 
-bot.cmd('yz', (_args, _message, { channel }) => bot.msg(channel, 'Try `help yz`'))
+bot.cmd('yz', ({ msg }) => msg('Try `help yz`'))
     .desc('Play Yahtzee!')
     .sub(
-        cmd('new', (_args, _message, { channel, user }) => {
+        cmd('new', ({ msg, channel, user }) => {
             if (store.get(channel) !== undefined
                 && store.get([channel, 'turns']) > 0
                 && !store.get([channel, 'players', user.id])) {
-                bot.msg(channel, `You can't reset a game you're not in ${tag(user)}`)
+                msg(`You can't reset a game you're not in ${tag(user)}`)
                 return
             }
 
@@ -151,21 +151,21 @@ bot.cmd('yz', (_args, _message, { channel }) => bot.msg(channel, 'Try `help yz`'
                 players: {},
                 turn: 0
             })
-            bot.msg(channel, 'Starting a new game of Yahtzee!')
+            msg('Starting a new game of Yahtzee!')
         })
             .desc('Create a new game of Yahtzee!')
     )
     .sub(
-        cmd('cancel', (_args, _message, { channel, user }) => {
+        cmd('cancel', ({ msg, channel, user }) => {
             if (noGame(channel) || notInGame(channel, user)) return
 
-            bot.msg(channel, 'Resetting Yahtzee! :(')
+            msg('Resetting Yahtzee! :(')
             store.commit(channel, {})
         })
             .desc('Cancel the current Yahtzee! game')
     )
     .sub(
-        cmd('roll', ([dice = '1,2,3,4,5'], _message, { channel, user }) => {
+        cmd('roll', ({ msg, channel, user }, [dice = '1,2,3,4,5']) => {
             if (noGame(channel) || notInGame(channel, user)) return
 
             const player = store.get([channel, 'players', user.id], {
@@ -174,14 +174,13 @@ bot.cmd('yz', (_args, _message, { channel }) => bot.msg(channel, 'Try `help yz`'
                 dice: Array(5)
             })
             if (player.rolls >= 4) {
-                bot.msg(channel, `You've had your turn ${tag(user)}`)
+                msg(`You've had your turn ${tag(user)}`)
                 return
             }
             if (player.rolls === 3) {
-                bot.msg(
-                    channel,
-                    `You're out of rolls, pick your category with \`yahtzee! save [cat]\` to continue\n${
-                        diceStatus(user, player.dice)}`
+                msg(
+                    `You're out of rolls, pick your category with \`yahtzee! save [cat]\` to continue
+                    ${diceStatus(user, player.dice)}`
                 )
                 return
             }
@@ -189,7 +188,7 @@ bot.cmd('yz', (_args, _message, { channel }) => bot.msg(channel, 'Try `help yz`'
             dice.split(',').forEach(num => {
                 if (num > 0 && num <= 5) player.dice[num - 1] = randint(6) + 1
             })
-            bot.msg(channel, diceStatus(user, player.dice))
+            msg(diceStatus(user, player.dice))
             store.commit([channel, 'players', user.id, 'dice'], player.dice)
             store.commit([channel, 'players', user.id, 'rolls'], player.rolls + 1)
         })
@@ -197,34 +196,34 @@ bot.cmd('yz', (_args, _message, { channel }) => bot.msg(channel, 'Try `help yz`'
             .arg({ name: 'dice-numbers', def: '1,2,3,4,5' })
     )
     .sub(
-        cmd('save', (category, _message, { channel, user }) => {
+        cmd('save', ({ msg, channel, user }, category) => {
             if (noGame(channel)) return
             category = category.join(' ')
 
             const cat = category.toLowerCase().replace(/ /g, '_')
 
             if (!rules[cat]) {
-                bot.msg(channel, 'Unknown category! Try `yz help`')
+                msg('Unknown category! Try `yz help`')
                 return
             }
 
             const player = store.get([channel, 'players', user.id])
             if (!player) {
                 if (store.get([channel, 'turns']) > 0) {
-                    bot.msg(channel, `You're not in this game ${tag(user)}`)
+                    msg(`You're not in this game ${tag(user)}`)
                 } else {
-                    bot.msg(channel, `You haven't rolled yet ${tag(user)}`)
+                    msg(`You haven't rolled yet ${tag(user)}`)
                 }
                 return
             }
 
             if (player.categories[cat] !== null) {
-                bot.msg(channel, `You've already filled that box ${tag(user)}`)
+                msg(`You've already filled that box ${tag(user)}`)
                 return
             }
 
             const result = rules[cat](player.dice)
-            bot.msg(channel, `${tag(user)} *+${result}* points for *${category}*`)
+            msg(`${tag(user)} *+${result}* points for *${category}*`)
             store.commit([channel, 'players', user.id, 'categories', cat], result)
             store.commit([channel, 'players', user.id, 'dice'], Array(5))
             store.commit([channel, 'players', user.id, 'rolls'], 4)
@@ -236,7 +235,7 @@ bot.cmd('yz', (_args, _message, { channel }) => bot.msg(channel, 'Try `help yz`'
 
             // start next turn
             const nextTurn = () => {
-                bot.msg(channel, `Yahtzee: turn *${turn + 2}*`)
+                msg(`Yahtzee: turn *${turn + 2}*`)
                 Object.keys(players).forEach(player => {
                     store.commit([channel, 'players', player, 'rolls'], 0)
                 })
@@ -245,8 +244,8 @@ bot.cmd('yz', (_args, _message, { channel }) => bot.msg(channel, 'Try `help yz`'
 
             if (newTurn) {
                 if (turn === 0) {
-                // allow new people to join the game before second turn
-                    bot.msg(channel, 'Ready for the second turn? Say `next turn`')
+                    // allow new people to join the game before second turn
+                    msg('Ready for the second turn? Say `next turn`')
                     bot.kw('next turn', (_message, _meta) => {
                         nextTurn()
                         bot.kw('next turn', null)
@@ -260,15 +259,15 @@ bot.cmd('yz', (_args, _message, { channel }) => bot.msg(channel, 'Try `help yz`'
             .arg({ name: 'category' })
     )
     .sub(
-        cmd('scores', (_args, _message, { channel }) => {
+        cmd('scores', ({ msg, channel }) => {
             if (noGame(channel)) return
 
             const { players } = store.get(channel)
             if (Object.keys(players).length === 0) {
-                bot.msg(channel, 'No scores to show')
+                msg('No scores to show')
                 return
             }
-            bot.msg(channel, pre(table(
+            msg(pre(table(
                 Object.keys(players).map(player => bot.getUserById(player).name),
                 [...Object.keys(rules), 'upper_section', 'lower_section', 'total'],
                 getTotals(players)
@@ -277,30 +276,30 @@ bot.cmd('yz', (_args, _message, { channel }) => bot.msg(channel, 'Try `help yz`'
             .desc('Print the scoresheet')
     )
     .sub(
-        cmd('dice', (_args, _message, { channel, user }) => {
+        cmd('dice', ({ msg, channel, user }) => {
             if (noGame(channel) || notInGame(channel, user)) return
 
             const player = store.get([channel, 'players', user.id])
             if (!player) {
                 if (store.get([channel, 'turns']) > 0) {
-                    bot.msg(channel, `You're not in this game ${tag(user)}`)
+                    msg(`You're not in this game ${tag(user)}`)
                 } else {
-                    bot.msg(channel, `You haven't rolled yet ${tag(user)}`)
+                    msg(`You haven't rolled yet ${tag(user)}`)
                 }
                 return
             }
 
             if (player.dice[0] === null) {
-                bot.msg(channel, `You haven't rolled yet ${tag(user)}`)
+                msg(`You haven't rolled yet ${tag(user)}`)
                 return
             }
 
-            bot.msg(channel, diceStatus(user, player.dice))
+            msg(diceStatus(user, player.dice))
         })
             .desc('Show your dice')
     )
     .sub(
-        cmd('help', (_args, _message, { channel }) => {
+        cmd('help', ({ msg }) => {
             const defs = {
                 ones: 'Sum of ones',
                 twos: 'Sum of twos',
@@ -316,7 +315,7 @@ bot.cmd('yz', (_args, _message, { channel }) => bot.msg(channel, 'Try `help yz`'
                 yahtzee: 'All five dice the same (+50)',
                 chance: 'Any combination (+sum of all)'
             }
-            bot.msg(channel, pre(table(
+            msg(pre(table(
                 ['description'],
                 Object.keys(defs),
                 [defs]
@@ -325,7 +324,7 @@ bot.cmd('yz', (_args, _message, { channel }) => bot.msg(channel, 'Try `help yz`'
             .desc('Get Yahtzee! game help')
     )
     .sub(
-        cmd('_eval', ([code], _message, { channel }) => {
-            bot.msg(channel, pre(eval(code)))
+        cmd('_eval', ({ msg }, [code]) => {
+            msg(pre(eval(code)))
         }).hide()
     )

@@ -95,9 +95,11 @@ class Bot {
                 const args = tokenize(term.trim())
                 console.log(args)
 
+                const context = { ...meta, args }
+
                 if (args.length > 0 && this.commands[args[0]]) {
                     try {
-                        this.commands[args.shift()].run(args, message, { ...meta, args })
+                        this.commands[args.shift()].run(context, args)
                     } catch (err) {
                         if (err instanceof UserError) {
                             this.msg(meta.channel, err.message)
@@ -110,7 +112,7 @@ class Bot {
                     Object.keys(this.keywords).forEach(keyword => {
                         if (term.toLowerCase().includes(keyword)) {
                             try {
-                                this.keywords[keyword](message, { ...meta, args })
+                                this.keywords[keyword](context, message.text)
                             } catch (err) {
                                 if (err instanceof UserError) {
                                     this.msg(meta.channel, err.message)
@@ -146,7 +148,13 @@ class Bot {
      * Listen for command
      *
      * @param {string} keyword
-     * @param {(args: string[], message: any, meta: { channel: string, user }) => any} callback
+     * @param {(context: {
+     *      channel: string,
+     *      user,
+     *      args: string[],
+     *      message: { text: string },
+     *      msg: (text) => void
+     * }, args: string[]) => any} callback
      * @param {string} desc
      * @param {string[]} args
      * @return {Command}
@@ -160,7 +168,13 @@ class Bot {
      * Listen for keyword
      *
      * @param {string} keyword
-     * @param {(message: any, meta: { channel: string, user }) => any} callback
+     * @param {(context: {
+     *      channel: string,
+     *      user,
+     *      args: string[],
+     *      message: { text: string },
+     *      msg: (text) => void
+     * }, message: string) => any} callback
      * @returns {void}
      */
     kw (keyword, callback) {

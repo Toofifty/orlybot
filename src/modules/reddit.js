@@ -1,6 +1,7 @@
 import bot from '../bot'
 import fs from 'fs'
 import request from 'request'
+import { error } from '../user-error'
 
 let seen = []
 
@@ -16,7 +17,7 @@ fs.readFile('./data/seen.csv', 'utf8', (err, data) => {
     seen = data.split(',')
 })
 
-bot.cmd('orly', ([subreddit = 'orlybook', sort = 'hot', time = ''], _message, { channel }) => {
+bot.cmd('orly', ({ msg }, [subreddit = 'orlybook', sort = 'hot', time = '']) => {
     if (time) {
         time = `?sort=${sort}&t=${time}`
     }
@@ -25,33 +26,24 @@ bot.cmd('orly', ([subreddit = 'orlybook', sort = 'hot', time = ''], _message, { 
         url: `https://www.reddit.com/r/${subreddit}/${sort}.json${time}`,
         json: true
     }, (err, _res, body) => {
-        if (err) {
-            console.error(err)
-            return
-        }
-        try {
-            let i = 0
-            let post, img, title
-            do {
-                if (!body.data) {
-                    break
-                }
-                post = body.data.children[i++].data
-                img = post.url
-                title = post.title
-            } while (seen.indexOf(img) > -1 || img.indexOf('/comments/') > -1)
+        if (err) error(err)
 
-            bot.msg(channel, `*${title}*\n${img}`)
-            seen.push(img)
-            fs.writeFile('./data/seen.csv', seen.join(','), null, err => {
-                if (err) {
-                    console.error(err)
-                }
-            })
-        } catch (e) {
-            console.error(e)
-            bot.msg(channel, e)
-        }
+        let i = 0
+        let post, img, title
+        do {
+            if (!body.data) {
+                break
+            }
+            post = body.data.children[i++].data
+            img = post.url
+            title = post.title
+        } while (seen.indexOf(img) > -1 || img.indexOf('/comments/') > -1)
+
+        msg(`*${title}*\n${img}`)
+        seen.push(img)
+        fs.writeFile('./data/seen.csv', seen.join(','), null, err => {
+            if (err) error(err)
+        })
     })
 })
     .arg({ name: 'subreddit', def: 'orlybooks' })

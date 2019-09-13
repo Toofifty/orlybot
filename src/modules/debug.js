@@ -3,42 +3,39 @@ import { tag, ticks, pre } from '../util'
 import userdata from '../userdata'
 import Store from '../store'
 
-bot.cmd('_users', (_args, _message, { channel }) => {
-    bot.msg(channel, JSON.stringify(bot.users))
+bot.cmd('_users', ({ msg }) => {
+    msg(JSON.stringify(bot.users))
 }).hide()
 
-bot.cmd('_channels', (_args, _message, { channel }) => {
-    bot.msg(channel, JSON.stringify(bot.users))
+bot.cmd('_channels', ({ msg }) => {
+    msg(JSON.stringify(bot.users))
 }).hide()
 
-bot.cmd('_me', (_args, _message, { user, channel }) => {
-    bot.msg(channel, `${tag(user)} ID: ${ticks(user.id)}`)
+bot.cmd('_me', ({ user, msg }) => {
+    msg(`${tag(user)} ID: ${ticks(user.id)}`)
 }).hide()
 
-bot.cmd('_userdata', ([other], _message, { user, channel }) => {
+bot.cmd('_userdata', ({ user, msg }, [other]) => {
     if (other) user = bot.getUser(other)
-    bot.msg(channel, pre(JSON.stringify(userdata.all(user))))
+    msg(pre(JSON.stringify(userdata.all(user))))
 }).hide()
 
-bot.cmd('_store', async ([store], _message, { channel }) => {
-    bot.msg(channel, pre(JSON.stringify((await Store.createAsync(store)).data)))
+bot.cmd('_store', async ({ msg }, [store]) => {
+    msg(pre(JSON.stringify((await Store.createAsync(store)).data)))
 }).hide()
 
-bot.cmd('_priv', (_args, _message, { user }) => {
+bot.cmd('_priv', ({ user }) => {
     bot.priv(user, 'hello!')
 }).hide()
 
-bot.cmd('_eval', ([code], { _text }, { channel }) => {
-    bot.msg(channel, pre(eval(code)))
+bot.cmd('_eval', ({ msg }, [code]) => {
+    msg(pre(eval(code)))
 }).hide()
 
-bot.cmd('_kw', (_args, _message, { channel }) => {
-    bot.msg(
-        channel,
-        Object.keys(bot.keywords).map(ticks).join(' ') || 'Nothing interesting happens.'
-    )
+bot.cmd('_kw', ({ msg }) => {
+    msg(Object.keys(bot.keywords).map(ticks).join(' ') || 'Nothing interesting happens.')
 }).hide()
 
-bot.cmd('_tok', (args, _message, { channel }) => {
-    bot.msg(channel, args.map(ticks).join(' '))
+bot.cmd('_tok', ({ msg }, args) => {
+    msg(args.map(ticks).join(' '))
 }).hide()
