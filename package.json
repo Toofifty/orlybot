@@ -21,7 +21,5 @@
         "bot": "nodemon --watch src --exec 'yarn lint && babel-node' src/orly.js",
         "lint": "./node_modules/eslint/bin/eslint.js src"
     },
-    "devDependencies": {
-        "prettier": "^1.18.2"
-    }
+    "devDependencies": {}
 }
