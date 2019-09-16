@@ -1,5 +1,5 @@
-import Slackbot from 'slackbots'
-import fs from 'fs'
+import * as Slackbot from 'slackbots'
+import * as fs from 'fs'
 import Command from './command'
 import { pickBy, tokenize, find, pre } from './util'
 import UserError from './user-error'
@@ -8,7 +8,7 @@ const IGNORE_TYPE = ['error', 'hello', 'user_typing']
 const IGNORE_SUBTYPE = ['bot_message', 'channel_join']
 
 class Bot {
-    constructor () {
+    constructor() {
         /**
          * Channel list
          */
@@ -136,11 +136,11 @@ class Bot {
         }, 1000)
     }
 
-    getUser (name) {
+    getUser(name) {
         return find(this.users, user => user.name === name)
     }
 
-    getUserById (id) {
+    getUserById(id) {
         return this.users[id]
     }
 
@@ -159,7 +159,7 @@ class Bot {
      * @param {string[]} args
      * @return {Command}
      */
-    cmd (keyword, callback = null, description = null, args = {}) {
+    cmd(keyword, callback = null, description = null, args = {}) {
         this.commands[keyword] = new Command(keyword, { callback, description, args })
         return this.commands[keyword]
     }
@@ -177,7 +177,7 @@ class Bot {
      * }, message: string) => any} callback
      * @returns {void}
      */
-    kw (keyword, callback) {
+    kw(keyword, callback) {
         if (!callback) {
             delete this.keywords[keyword]
         } else {
@@ -192,7 +192,7 @@ class Bot {
      * @param {string} message
      * @param {number} timeout
      */
-    msg (channel, message, timeout = 0) {
+    msg(channel, message, timeout = 0) {
         if (typeof channel === 'object') {
             channel = channel.name
         }
@@ -213,7 +213,7 @@ class Bot {
      * @param {string} message
      * @param {number} timeout
      */
-    msgAttachment (channel, message, attachment, timeout = 0) {
+    msgAttachment(channel, message, attachment, timeout = 0) {
         if (typeof channel === 'object') {
             channel = channel.name
         }
@@ -232,7 +232,7 @@ class Bot {
      * @param {string|object} user
      * @param {string} message
      */
-    priv (user, message) {
+    priv(user, message) {
         if (typeof user === 'object') {
             user = user.name
         }
@@ -242,7 +242,7 @@ class Bot {
     /**
      * Get all non-hidden commands
      */
-    getCommands () {
+    getCommands() {
         return pickBy(this.commands, (key, value) => !value.hidden)
     }
 }
