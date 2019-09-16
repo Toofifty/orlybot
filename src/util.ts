@@ -1,7 +1,13 @@
 import * as fs from 'fs';
 import { promisify } from 'util';
 import bot from './bot';
-import { User, Dict, KeyPredicate, ElementPredicate } from 'types';
+import {
+    User,
+    Dict,
+    KeyPredicate,
+    ElementPredicate,
+    CommandArgument,
+} from 'types';
 
 /**
  * Slack tag
@@ -116,6 +122,14 @@ export const tokenize = (str: string): string[] =>
         },
         { quote: null, tokens: [], working: '' }
     ).tokens;
+
+/**
+ * Stringify an argument for printing in the help command
+ */
+export const stringifyArg = ({ required, name, def }: CommandArgument) =>
+    `${required ? '<' : '['}` +
+    `${name}${def !== undefined ? `=${JSON.stringify(def)}` : ''}` +
+    `${required ? '>' : ']'}`;
 
 /**
  * Get a formatted table for the dataset
