@@ -18,8 +18,12 @@
         "slackbots": "^1.2.0"
     },
     "scripts": {
-        "bot": "nodemon --watch src --exec 'yarn lint && babel-node' src/orly.js",
+        "build": "tsc -p .",
+        "bot": "nodemon --watch src --exec 'yarn lint && yarn build' src/orly.js",
         "lint": "./node_modules/eslint/bin/eslint.js src"
     },
-    "devDependencies": {}
+    "devDependencies": {
+        "awesome-typescript-loader": "^5.2.1",
+        "typescript": "^3.6.3"
+    }
 }

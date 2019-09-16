@@ -3,3 +3,5 @@
 node_modules/
 data/*
 seen
+dist/
+.vscode/taskmarks.json
