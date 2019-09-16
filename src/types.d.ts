@@ -2,6 +2,7 @@ import Command from 'command';
 
 export interface User {
     id: string;
+    name: string;
 }
 
 export interface Dict<T> {
@@ -20,6 +21,10 @@ export interface CommandContext {
 }
 
 export type CommandCallback = (context: CommandContext, args: string[]) => void;
+export type KeywordCallback = (
+    context: CommandContext,
+    message: string
+) => void;
 
 export interface CommandData {
     callback: CommandCallback;
@@ -33,4 +38,23 @@ export interface CommandArgument {
     name: string;
     required: boolean;
     def?: any;
+}
+
+export interface QueuedMessage {
+    channel: string;
+    message: string;
+    attachment?: any;
+}
+
+export interface Channel {
+    id: string;
+    name: string;
+}
+
+export interface MessageEvent {
+    type: string;
+    subtype: string;
+    channel: string;
+    text: string;
+    user: string;
 }
