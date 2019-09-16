@@ -13,15 +13,13 @@
         "cleverbot.io": "^1.0.4",
         "decode-html": "^2.0.0",
         "dotenv": "^7.0.0",
-        "eslint": "^5.16.0",
         "nodemon": "^1.18.10",
         "slackbots": "^1.2.0"
     },
     "scripts": {
         "build": "tsc -p .",
         "start": "node dist/orly.js",
-        "bot": "nodemon --watch src --exec 'yarn build && yarn start'",
-        "lint": "./node_modules/eslint/bin/eslint.js src"
+        "bot": "nodemon --watch src --exec 'yarn build && yarn start'"
     },
     "devDependencies": {
         "@types/node": "^12.7.5",
