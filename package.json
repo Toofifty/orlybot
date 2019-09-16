@@ -19,11 +19,14 @@
     },
     "scripts": {
         "build": "tsc -p .",
-        "bot": "nodemon --watch src --exec 'yarn lint && yarn build' src/orly.js",
+        "start": "node dist/orly.js",
+        "bot": "nodemon --watch src --exec 'yarn build && yarn start'",
         "lint": "./node_modules/eslint/bin/eslint.js src"
     },
     "devDependencies": {
+        "@types/node": "^12.7.5",
         "awesome-typescript-loader": "^5.2.1",
+        "prettier": "^1.18.2",
         "typescript": "^3.6.3"
     }
 }
