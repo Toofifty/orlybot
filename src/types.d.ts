@@ -13,11 +13,44 @@ export type KeyPredicate<T> = (key: string, element: T) => boolean;
 export type ElementPredicate<T> = (element: T, index: number) => boolean;
 
 export interface CommandContext {
+    /**
+     * Current channel
+     */
     channel: string;
+
+    /**
+     * Command user
+     */
     user: User;
+
+    /**
+     * Arguments for the command
+     */
     args: string[];
-    message: { text: string };
-    msg: (text: string) => void;
+
+    /**
+     * Send a message to the current channel
+     */
+    send: (message: string, timeout?: number) => void;
+
+    /**
+     * Send a message with attachment to the current channel
+     */
+    sendAttachment: (
+        message: string,
+        attachment: any,
+        timeout?: number
+    ) => void;
+
+    /**
+     * Entire message
+     */
+    message: string;
+
+    /**
+     * Split command term
+     */
+    term: string;
 }
 
 export type CommandCallback = (context: CommandContext, args: string[]) => void;
@@ -51,7 +84,7 @@ export interface Channel {
     name: string;
 }
 
-export interface MessageEvent {
+export interface SlackMessageEvent {
     type: string;
     subtype: string;
     channel: string;

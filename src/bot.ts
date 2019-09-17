@@ -1,22 +1,19 @@
 import * as Slackbot from 'slackbots';
-import * as fs from 'fs';
 import Command from './command';
-import { pickBy, tokenize, find, pre, readfile } from './util';
-import UserError from './user-error';
+import { pickBy, find, readfile, writefile } from './util';
 import {
     Dict,
     KeywordCallback,
     User,
     QueuedMessage,
-    MessageEvent,
+    SlackMessageEvent,
     CommandCallback,
     Channel,
-} from 'types';
+    CommandContext,
+} from './types';
+import MessageInterpreter from './message-interpreter';
 
-const IGNORE_TYPE = ['error', 'hello', 'user_typing'];
-const IGNORE_SUBTYPE = ['bot_message', 'channel_join'];
-
-class Bot {
+export class Bot {
     private channels: Dict<Channel> = {};
     private commands: Dict<Command> = {};
     private keywords: Dict<KeywordCallback> = {};
@@ -30,110 +27,10 @@ class Bot {
             name: process.env.SLACK_NAME,
         });
 
-        fs.readFile('./data/channels.json', (err, data) => {
-            if (err) {
-                fs.writeFile('./data/channels.json', '{}', null, err => {
-                    if (err) console.error;
-                });
-                return;
-            }
-            console.log(data.toString());
-            this.channels = JSON.parse(data.toString() || '{}');
-        });
+        this.loadChannels();
 
-        this.bot.on('message', ({ type, ...message }: MessageEvent) => {
-            console.log(message);
-
-            // ignore
-            if (
-                IGNORE_TYPE.includes(type) ||
-                IGNORE_SUBTYPE.includes(message.subtype)
-            )
-                return;
-
-            // try load channels
-            if (Object.keys(this.channels).length === 0) {
-                console.log('Loading channels');
-                this.bot.getChannels()._value.channels.forEach(channel => {
-                    this.channels[channel.id] = channel;
-                });
-                fs.writeFile(
-                    './data/channels.json',
-                    JSON.stringify(this.channels),
-                    null,
-                    err => {
-                        if (err) console.error(err);
-                    }
-                );
-            }
-
-            // try load users
-            if (Object.keys(this.users).length === 0) {
-                console.log('Loading users');
-                this.bot.getUsers()._value.members.forEach(member => {
-                    this.users[member.id] = member;
-                });
-                fs.writeFile(
-                    './data/users.json',
-                    JSON.stringify(this.users),
-                    null,
-                    err => {
-                        if (err) console.error(err);
-                    }
-                );
-            }
-
-            if (!this.channels[message.channel]) {
-                console.error('Channels are out of date, re-invite orly');
-                return;
-            }
-
-            if (!message.text) return;
-
-            const terms = message.text.split('&amp;&amp;');
-            const channel = this.channels[message.channel].name;
-            const meta = {
-                message,
-                channel,
-                user: this.users[message.user],
-                msg: text => this.msg(channel, text),
-            };
-
-            terms.forEach(term => {
-                const args = tokenize(term.trim());
-                console.log(args);
-
-                const context = { ...meta, args };
-
-                if (args.length > 0 && this.commands[args[0]]) {
-                    try {
-                        this.commands[args.shift()].run(context, args);
-                    } catch (err) {
-                        if (err instanceof UserError) {
-                            this.msg(channel, err.message);
-                        } else {
-                            this.msg(channel, pre(`!! ${err}`));
-                            throw err;
-                        }
-                    }
-                } else {
-                    Object.keys(this.keywords).forEach(keyword => {
-                        if (term.toLowerCase().includes(keyword)) {
-                            try {
-                                this.keywords[keyword](context, message.text);
-                            } catch (err) {
-                                if (err instanceof UserError) {
-                                    this.msg(channel, err.message);
-                                } else {
-                                    this.msg(channel, pre(`!! ${err}`));
-                                    throw err;
-                                }
-                            }
-                        }
-                    });
-                }
-            });
-        });
+        const messageInterpreter = new MessageInterpreter(this);
+        messageInterpreter.start();
 
         // message sending queue
         setInterval(() => {
@@ -148,18 +45,99 @@ class Bot {
         }, 1000);
     }
 
+    public onMessage(callback: (message: SlackMessageEvent) => void): void {
+        this.bot.on('message', callback);
+    }
+
+    private async loadChannels(): Promise<void> {
+        try {
+            const data = await readfile('./data/channels.json');
+            this.channels = JSON.parse(data.toString() || '{}');
+        } catch (error) {
+            writefile('./data/channels.json', '{}');
+        }
+    }
+
+    public initializeData(): void {
+        // try load channels
+        if (Object.keys(this.channels).length === 0) {
+            console.log('Loading channels');
+            this.bot.getChannels()._value.channels.forEach(channel => {
+                this.channels[channel.id] = channel;
+            });
+            writefile('./data/channels.json', JSON.stringify(this.channels));
+        }
+
+        // try load users
+        if (Object.keys(this.users).length === 0) {
+            console.log('Loading users');
+            this.bot.getUsers()._value.members.forEach(member => {
+                this.users[member.id] = member;
+            });
+            writefile('./data/users.json', JSON.stringify(this.users));
+        }
+    }
+
+    /**
+     * Get channel by ID
+     */
+    public getChannel(id: string): Channel {
+        if (!(id in this.channels)) {
+            throw Error(`Could not find channel ${id}`);
+        }
+
+        return this.channels[id];
+    }
+
+    /**
+     * Get channel name by ID
+     */
+    public getChannelName(id: string): string {
+        return this.getChannel(id).name;
+    }
+
     /**
      * Find user by name
      */
-    getUser(name: string): User {
+    public getUser(name: string): User {
         return find(this.users, user => user.name === name);
     }
 
     /**
      * Find user by id
      */
-    getUserById(id: string) {
+    public getUserById(id: string) {
         return this.users[id];
+    }
+
+    public hasCommand(name: string) {
+        return name in this.commands;
+    }
+
+    /**
+     * Get registered keywords
+     */
+    public getKeywords(): string[] {
+        return Object.keys(this.keywords);
+    }
+
+    /**
+     * Execute the given command
+     */
+    public executeCommand(
+        command: string,
+        context: CommandContext,
+        args: string[]
+    ): void {
+        return this.commands[command].run(context, args);
+    }
+
+    public executeKeyword(
+        keyword: string,
+        context: CommandContext,
+        message: string
+    ): void {
+        return this.keywords[keyword](context, message);
     }
 
     /**
@@ -189,12 +167,19 @@ class Bot {
     }
 
     /**
-     * Post message to channel
+     * Send message to channel
      */
-    msg(channel: Channel | string, message: string, timeout: number = 0): void {
+    public send(
+        channel: Channel | string,
+        message: string,
+        timeout: number = 0
+    ): void {
         if (typeof channel === 'object') {
             channel = channel.name;
+        } else if (channel in this.channels) {
+            channel = this.getChannelName(channel);
         }
+
         if (!timeout) {
             this.queue.push({ channel, message });
         } else {
@@ -205,9 +190,9 @@ class Bot {
     }
 
     /**
-     * Post message to channel
+     * Send message and attachment to channel
      */
-    msgAttachment(
+    sendAttachment(
         channel: Channel | string,
         message: string,
         attachment: any,

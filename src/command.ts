@@ -4,7 +4,7 @@ import {
     CommandData,
     CommandArgument,
     CommandContext,
-} from 'types';
+} from './types';
 import { stringifyArg } from './util';
 
 /**
@@ -62,8 +62,8 @@ export default class Command implements CommandData {
     /**
      * Add argument
      */
-    arg(data: CommandArgument): Command {
-        this.argz.push(data);
+    arg(data: Partial<CommandArgument>): Command {
+        this.argz.push({ required: false, name: 'null', ...data });
         return this;
     }
 
@@ -94,13 +94,15 @@ export default class Command implements CommandData {
      * Get help message
      */
     get help(): string {
-        const args = this.argz.map(stringifyArg).join(' ');
-        return `\`${this.keyword}${args}\` - ${this.description}` +
-            this.hasSubcommands
-            ? `\n${Object.keys(this.subcommands)
-                  .map(key => this.subcommands[key].help)
-                  .join('\n')}`
-            : '';
+        const args = [this.keyword, ...this.argz.map(stringifyArg)].join(' ');
+        return (
+            `\`${args}\` - ${this.description}` +
+            (this.hasSubcommands
+                ? `\n${Object.keys(this.subcommands)
+                      .map(key => this.subcommands[key].help)
+                      .join('\n')}`
+                : '')
+        );
     }
 
     /**
