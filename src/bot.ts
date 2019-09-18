@@ -20,12 +20,15 @@ export class Bot {
     private users: Dict<User> = {};
     private queue: QueuedMessage[] = [];
     private bot: Slackbot;
+    private admins: string[] = [];
 
     constructor() {
         this.bot = new Slackbot({
             token: process.env.SLACK_TOKEN,
             name: process.env.SLACK_NAME,
         });
+
+        this.admins = (process.env.SLACK_ADMINS || '').split(',');
 
         this.loadChannels();
 
@@ -104,6 +107,13 @@ export class Bot {
     }
 
     /**
+     * Get all stored users
+     */
+    public getUsers(): Dict<User> {
+        return this.users;
+    }
+
+    /**
      * Find user by id
      */
     public getUserById(id: string) {
@@ -129,7 +139,12 @@ export class Bot {
         context: CommandContext,
         args: string[]
     ): void {
-        return this.commands[command].run(context, args);
+        const cmd = this.commands[command];
+        if (!cmd.hidden || this.admins.includes(context.user.id)) {
+            return this.commands[command].run(context, args);
+        } else {
+            context.send('Nothing interesting happens.');
+        }
     }
 
     public executeKeyword(
@@ -143,7 +158,7 @@ export class Bot {
     /**
      * Register command
      */
-    cmd(
+    public cmd(
         keyword: string,
         callback: CommandCallback = null,
         description: string = null
@@ -158,7 +173,7 @@ export class Bot {
     /**
      * Register keyword listener
      */
-    kw(keyword: string, callback?: KeywordCallback): void {
+    public kw(keyword: string, callback?: KeywordCallback): void {
         if (!callback) {
             delete this.keywords[keyword];
         } else {
@@ -192,7 +207,7 @@ export class Bot {
     /**
      * Send message and attachment to channel
      */
-    sendAttachment(
+    public sendAttachment(
         channel: Channel | string,
         message: string,
         attachment: any,
@@ -217,7 +232,7 @@ export class Bot {
     /**
      * Post private message to user
      */
-    priv(user: User | string, message: string): void {
+    public priv(user: User | string, message: string): void {
         if (typeof user === 'object') {
             user = user.name;
         }
@@ -227,7 +242,10 @@ export class Bot {
     /**
      * Get all non-hidden commands
      */
-    getCommands(): Dict<Command> {
+    public getCommands(showHidden: boolean = false): Dict<Command> {
+        if (showHidden) {
+            return this.commands;
+        }
         return pickBy(this.commands, (_key, value) => !value.hidden);
     }
 }

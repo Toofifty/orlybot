@@ -23,7 +23,7 @@ export default class Store {
     private name: string;
     private data: Dict<any>;
 
-    private constructor(name: string, initial: Dict<any>) {
+    private constructor(name: string, initial?: Dict<any>) {
         this.name = name;
         this.data = { ...initial };
     }
@@ -35,7 +35,7 @@ export default class Store {
      *
      * It will be saved to `/data/{name}.json`
      */
-    public static create(name: string, initial: Dict<any>): Store {
+    public static create(name: string, initial?: Dict<any>): Store {
         const store = new Store(name, initial);
         store._load();
         return store;
@@ -46,7 +46,7 @@ export default class Store {
      */
     public static async createAsync(
         name: string,
-        initial: Dict<any>
+        initial?: Dict<any>
     ): Promise<Store> {
         const store = new Store(name, initial);
         await store._load();

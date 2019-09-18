@@ -15,6 +15,19 @@ bot.cmd('help', ({ send }, [cmd]) => {
     .arg({ name: 'cmd' })
     .desc('Get command list / usage for a command');
 
+bot.cmd('_help', ({ send }, [cmd]) => {
+    let commands = bot.getCommands(true);
+    if (cmd) commands = pickBy(commands, key => key === cmd);
+    send(
+        Object.keys(commands)
+            .map(key => commands[key].help)
+            .join('\n') || 'Nothing interesting happens'
+    );
+})
+    .arg({ name: 'cmd' })
+    .desc('Get command list / usage for a command (includes hidden commands)')
+    .hide();
+
 bot.cmd('joke', ({ send }) => {
     request(
         'https://official-joke-api.appspot.com/random_joke',

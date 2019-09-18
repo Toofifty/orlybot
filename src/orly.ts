@@ -7,5 +7,5 @@ import './modules/misc';
 // import './modules/trivia';
 // import './modules/crypto';
 // import './modules/yahtzee';
-// import './modules/debug';
+import './modules/debug';
 // import './modules/connect4';

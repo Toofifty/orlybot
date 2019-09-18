@@ -95,8 +95,11 @@ export default class Command implements CommandData {
      */
     get help(): string {
         const args = [this.keyword, ...this.argz.map(stringifyArg)].join(' ');
+        const description = `${this.hidden ? '[hidden] ' : ''}${
+            this.description
+        }`;
         return (
-            `\`${args}\` - ${this.description}` +
+            `\`${args}\` - ${description}` +
             (this.hasSubcommands
                 ? `\n${Object.keys(this.subcommands)
                       .map(key => this.subcommands[key].help)
