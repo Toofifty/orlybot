@@ -13,6 +13,7 @@
         "cleverbot.io": "^1.0.4",
         "decode-html": "^2.0.0",
         "dotenv": "^7.0.0",
+        "node-fetch": "^2.6.0",
         "nodemon": "^1.18.10",
         "slackbots": "^1.2.0"
     },
@@ -23,6 +24,7 @@
     },
     "devDependencies": {
         "@types/node": "^12.7.5",
+        "@types/node-fetch": "^2.5.0",
         "awesome-typescript-loader": "^5.2.1",
         "prettier": "^1.18.2",
         "typescript": "^3.6.3"

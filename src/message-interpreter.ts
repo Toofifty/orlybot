@@ -14,9 +14,9 @@ export default class MessageInterpreter {
     }
 
     public start(): void {
-        this.bot.onMessage(message => {
+        this.bot.onMessage(async message => {
             try {
-                this.onMessage(message);
+                await this.onMessage(message);
             } catch (error) {
                 this.returnErrorToChannel(error, message.channel);
             }
@@ -28,7 +28,7 @@ export default class MessageInterpreter {
      */
     private returnErrorToChannel(error: Error, channel: string): void {
         if (error instanceof UserError) {
-            this.bot.send(channel, error.message);
+            this.bot.send(channel, `\`!\` ${error.message}`);
         } else {
             this.bot.send(channel, pre(`!! ${error.message}`));
             // re-throw to get stack trace
@@ -39,7 +39,11 @@ export default class MessageInterpreter {
     /**
      * On slack message listener
      */
-    private onMessage({ type, subtype, ...message }: SlackMessageEvent): void {
+    private onMessage({
+        type,
+        subtype,
+        ...message
+    }: SlackMessageEvent): Promise<void[]> {
         this.bot.initializeData();
         if (!message.text || this.isIgnoredType(type, subtype)) return;
 
@@ -71,28 +75,40 @@ export default class MessageInterpreter {
 
         const lcMessage = message.text.toLowerCase();
 
-        terms.forEach(term => {
-            const args = tokenize(term.trim());
-            const context = {
-                ...rootContext,
-                args,
-                term,
-            };
+        return Promise.all(
+            terms.map(async term => {
+                const args = tokenize(term.trim());
+                const context = {
+                    ...rootContext,
+                    args,
+                    term,
+                };
 
-            const lcTerm = term.toLowerCase();
+                const lcTerm = term.toLowerCase();
 
-            if (args.length > 0 && this.bot.hasCommand(args[0])) {
-                this.bot.executeCommand(args.shift(), context, args);
-            } else {
-                this.bot.getKeywords().forEach(keyword => {
-                    if (lcTerm.includes(keyword)) {
-                        this.bot.executeKeyword(keyword, context, message.text);
-                    } else if (lcMessage.includes(keyword)) {
-                        this.bot.executeKeyword(keyword, context, message.text);
-                    }
-                });
-            }
-        });
+                if (args.length > 0 && this.bot.hasCommand(args[0])) {
+                    await this.bot.executeCommand(args.shift(), context, args);
+                } else {
+                    await Promise.all(
+                        this.bot.getKeywords().map(async keyword => {
+                            if (lcTerm.includes(keyword)) {
+                                await this.bot.executeKeyword(
+                                    keyword,
+                                    context,
+                                    message.text
+                                );
+                            } else if (lcMessage.includes(keyword)) {
+                                await this.bot.executeKeyword(
+                                    keyword,
+                                    context,
+                                    message.text
+                                );
+                            }
+                        })
+                    );
+                }
+            })
+        );
     }
 
     /**
