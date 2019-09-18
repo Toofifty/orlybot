@@ -19,7 +19,7 @@
     "scripts": {
         "build": "tsc -p .",
         "start": "node dist/orly.js",
-        "bot": "nodemon --watch 'src/**/*.ts' --exec 'yarn build && yarn start'"
+        "bot": "nodemon -e ts -w src -x 'yarn build && yarn start'"
     },
     "devDependencies": {
         "@types/node": "^12.7.5",
