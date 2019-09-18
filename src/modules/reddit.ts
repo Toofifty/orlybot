@@ -1,5 +1,4 @@
 import bot from '../bot';
-import * as request from 'request';
 import fetch from 'node-fetch';
 import { error } from '../user-error';
 import { readfile, writefile } from '../util';
