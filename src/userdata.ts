@@ -36,6 +36,21 @@ class UserData {
     }
 
     /**
+     * Update a stored value via a callback
+     */
+    update<T>(
+        user: string | User,
+        key: string,
+        updater: (prev: T) => T,
+        def: T = null
+    ): T {
+        if (typeof user === 'object') {
+            user = user.id;
+        }
+        return this.store.update([user, key], updater, def);
+    }
+
+    /**
      * Get all stored data for the user
      */
     all(user: string | User) {

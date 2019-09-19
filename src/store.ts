@@ -121,6 +121,18 @@ export default class Store {
     }
 
     /**
+     * Update a stored value via a callback, and return
+     * the result
+     */
+    public update<T>(
+        path: string | string[],
+        updater: (prev: T) => T,
+        def?: T
+    ): T {
+        return this.commit(path, updater(this.get(path, def)));
+    }
+
+    /**
      * Get a value from the store
      */
     public get<T>(path: string | string[], def?: T): any | T {
