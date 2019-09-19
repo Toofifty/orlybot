@@ -1,5 +1,5 @@
 import { readfile, writefile } from './util';
-import { Dict } from 'types';
+import { Dict, PathType } from 'types';
 
 /**
  * Persistent data storage
@@ -19,11 +19,11 @@ import { Dict } from 'types';
  * store.commit('value', 'changed') => 'changed'
  * store.get('value') => 'changed'
  */
-export default class Store {
+export default class Store<T> {
     private name: string;
-    private data: Dict<any>;
+    private data: T;
 
-    private constructor(name: string, initial?: Dict<any>) {
+    private constructor(name: string, initial?: T) {
         this.name = name;
         this.data = { ...initial };
     }
@@ -35,7 +35,7 @@ export default class Store {
      *
      * It will be saved to `/data/{name}.json`
      */
-    public static create(name: string, initial?: Dict<any>): Store {
+    public static create<T>(name: string, initial?: T): Store<T> {
         const store = new Store(name, initial);
         store._load();
         return store;
@@ -44,10 +44,10 @@ export default class Store {
     /**
      * Create a new persistent store asynchronously
      */
-    public static async createAsync(
+    public static async createAsync<T>(
         name: string,
-        initial?: Dict<any>
-    ): Promise<Store> {
+        initial?: T
+    ): Promise<Store<T>> {
         const store = new Store(name, initial);
         await store._load();
         return store;
@@ -100,7 +100,7 @@ export default class Store {
     /**
      * Commit a value to the store
      */
-    public commit<T>(path: string | string[], value: T): T {
+    public commit(path: string | string[], value: T): T {
         try {
             const props = Store._parts(path);
             const target = props.pop();
@@ -124,7 +124,7 @@ export default class Store {
      * Update a stored value via a callback, and return
      * the result
      */
-    public update<T>(
+    public update(
         path: string | string[],
         updater: (prev: T) => T,
         def?: T
@@ -135,7 +135,7 @@ export default class Store {
     /**
      * Get a value from the store
      */
-    public get<T>(path: string | string[], def?: T): any | T {
+    public get(path: string | string[], def?: T): T | undefined {
         try {
             const result = Store._parts(path).reduce(
                 (item: any, prop: string | number) => item[prop],
@@ -145,6 +145,26 @@ export default class Store {
             return result;
         } catch (err) {
             if (def) this.commit(path, def);
+            return def;
+        }
+    }
+
+    /**
+     * Get a value from the store
+     */
+    public geet<P extends string[]>(
+        path: P,
+        def?: PathType<T, P>
+    ): PathType<T, P> {
+        try {
+            const result = path.reduce(
+                (item: any, prop: string | number) => item[prop],
+                this.data
+            );
+            if (result === undefined) throw 'reee';
+            return result;
+        } catch (err) {
+            // if (def) this.commit(path, def);
             return def;
         }
     }
