@@ -1,5 +1,4 @@
 import { readfile, writefile } from './util';
-import { Dict, PathType } from 'types';
 
 /**
  * Persistent data storage
@@ -87,24 +86,40 @@ export default class Store<T> {
         }
     }
 
-    /**
-     * Get split parts from a path
-     */
-    private static _parts(path: string | string[]): string[] {
-        if (Array.isArray(path)) {
-            return path;
-        }
-        return path.split('.');
-    }
+    public commit<P0 extends keyof T>(path: [P0], value: T[P0]): T[P0];
+    public commit<P0 extends keyof T, P1 extends keyof T[P0]>(
+        path: [P0, P1],
+        value: T[P0][P1]
+    ): T[P0][P1];
+    public commit<
+        P0 extends keyof T,
+        P1 extends keyof T[P0],
+        P2 extends keyof T[P0][P1]
+    >(path: [P0, P1, P2], value: T[P0][P1][P2]): T[P0][P1][P2];
+    public commit<
+        P0 extends keyof T,
+        P1 extends keyof T[P0],
+        P2 extends keyof T[P0][P1],
+        P3 extends keyof T[P0][P1][P2]
+    >(path: [P0, P1, P2, P3], value: T[P0][P1][P2][P3]): T[P0][P1][P2][P3];
+    public commit<
+        P0 extends keyof T,
+        P1 extends keyof T[P0],
+        P2 extends keyof T[P0][P1],
+        P3 extends keyof T[P0][P1][P2],
+        P4 extends keyof T[P0][P1][P2][P3]
+    >(
+        path: [P0, P1, P2, P3, P4],
+        value: T[P0][P1][P2][P3][P4]
+    ): T[P0][P1][P2][P3][P4];
 
     /**
      * Commit a value to the store
      */
-    public commit(path: string | string[], value: T): T {
+    public commit(path: string[], value: any): any {
         try {
-            const props = Store._parts(path);
-            const target = props.pop();
-            const item = props.reduce(
+            const target = path.pop();
+            const item = path.reduce(
                 (item: any, prop: string | number) => item[prop],
                 this.data
             );
@@ -113,49 +128,91 @@ export default class Store<T> {
             return value;
         } catch (err) {
             throw new TypeError(
-                `Invalid path name in ${this.name} store: ${Store._parts(
-                    path
-                ).join('/')}`
+                `Invalid path name in ${this.name} store: ${path.join('/')}`
             );
         }
     }
+
+    public update<P0 extends keyof T>(
+        path: [P0],
+        updater: (prev: T[P0]) => T[P0],
+        def?: T[P0]
+    ): T[P0];
+    public update<P0 extends keyof T, P1 extends keyof T[P0]>(
+        path: [P0, P1],
+        updater: (prev: T[P0][P1]) => T[P0][P1],
+        def?: T[P0][P1]
+    ): T[P0][P1];
+    public update<
+        P0 extends keyof T,
+        P1 extends keyof T[P0],
+        P2 extends keyof T[P0][P1]
+    >(
+        path: [P0, P1, P2],
+        updater: (prev: T[P0][P1][P2]) => T[P0][P1][P2],
+        def?: T[P0][P1][P2]
+    ): T[P0][P1][P2];
+    public update<
+        P0 extends keyof T,
+        P1 extends keyof T[P0],
+        P2 extends keyof T[P0][P1],
+        P3 extends keyof T[P0][P1][P2]
+    >(
+        path: [P0, P1, P2, P3],
+        updater: (prev: T[P0][P1][P2][P3]) => T[P0][P1][P2][P3],
+        def?: T[P0][P1][P2][P3]
+    ): T[P0][P1][P2][P3];
+    public update<
+        P0 extends keyof T,
+        P1 extends keyof T[P0],
+        P2 extends keyof T[P0][P1],
+        P3 extends keyof T[P0][P1][P2],
+        P4 extends keyof T[P0][P1][P2][P3]
+    >(
+        path: [P0, P1, P2, P3, P4],
+        updater: (prev: T[P0][P1][P2][P3][P4]) => T[P0][P1][P2][P3][P4],
+        def?: T[P0][P1][P2][P3][P4]
+    ): T[P0][P1][P2][P3][P4];
 
     /**
      * Update a stored value via a callback, and return
      * the result
      */
-    public update(
-        path: string | string[],
-        updater: (prev: T) => T,
-        def?: T
-    ): T {
+    public update(path: string[], updater: (prev: any) => any, def?: any): any {
         return this.commit(path, updater(this.get(path, def)));
     }
 
-    /**
-     * Get a value from the store
-     */
-    public get(path: string | string[], def?: T): T | undefined {
-        try {
-            const result = Store._parts(path).reduce(
-                (item: any, prop: string | number) => item[prop],
-                this.data
-            );
-            if (result === undefined) throw 'reee';
-            return result;
-        } catch (err) {
-            if (def) this.commit(path, def);
-            return def;
-        }
-    }
+    public get<P0 extends keyof T>(path: [P0], def?: T[P0]): T[P0];
+    public get<P0 extends keyof T, P1 extends keyof T[P0]>(
+        path: [P0, P1],
+        def?: T[P0][P1]
+    ): T[P0][P1];
+    public get<
+        P0 extends keyof T,
+        P1 extends keyof T[P0],
+        P2 extends keyof T[P0][P1]
+    >(path: [P0, P1, P2], def?: T[P0][P1][P2]): T[P0][P1][P2];
+    public get<
+        P0 extends keyof T,
+        P1 extends keyof T[P0],
+        P2 extends keyof T[P0][P1],
+        P3 extends keyof T[P0][P1][P2]
+    >(path: [P0, P1, P2, P3], def?: T[P0][P1][P2][P3]): T[P0][P1][P2][P3];
+    public get<
+        P0 extends keyof T,
+        P1 extends keyof T[P0],
+        P2 extends keyof T[P0][P1],
+        P3 extends keyof T[P0][P1][P2],
+        P4 extends keyof T[P0][P1][P2][P3]
+    >(
+        path: [P0, P1, P2, P3, P4],
+        def?: T[P0][P1][P2][P3][P4]
+    ): T[P0][P1][P2][P3][P4];
 
     /**
      * Get a value from the store
      */
-    public geet<P extends string[]>(
-        path: P,
-        def?: PathType<T, P>
-    ): PathType<T, P> {
+    public get(path: string[], def?: any): any {
         try {
             const result = path.reduce(
                 (item: any, prop: string | number) => item[prop],
@@ -164,7 +221,7 @@ export default class Store<T> {
             if (result === undefined) throw 'reee';
             return result;
         } catch (err) {
-            // if (def) this.commit(path, def);
+            if (def) this.commit(path, def);
             return def;
         }
     }

@@ -107,7 +107,7 @@ const diceStatus = (user: User, dice: number[]) =>
  * Check if there is no game for the channel (and send channel)
  */
 const noGame = (send: (text: string) => void, channel: string) => {
-    if (store.get(channel) === undefined) {
+    if (store.get([channel]) === undefined) {
         send(`There's no Yahtzee! game at the moment in *#${channel}*`);
         return true;
     }
@@ -119,7 +119,7 @@ const noGame = (send: (text: string) => void, channel: string) => {
  */
 const notInGame = (send: (text: string) => void, channel: string, user) => {
     if (
-        store.get([channel, 'turns']) > 0 &&
+        store.get([channel, 'turn']) > 0 &&
         !store.get([channel, 'players', user.id])
     ) {
         send(`You're not in this game ${tag(user)}`);
@@ -170,15 +170,15 @@ bot.cmd('yz', ({ send }) => send('Try `help yz`'))
     .sub(
         cmd('new', ({ send, channel, user }) => {
             if (
-                store.get(channel) !== undefined &&
-                store.get([channel, 'turns']) > 0 &&
+                store.get([channel]) !== undefined &&
+                store.get([channel, 'turn']) > 0 &&
                 !store.get([channel, 'players', user.id])
             ) {
                 send(`You can't reset a game you're not in ${tag(user)}`);
                 return;
             }
 
-            store.commit(channel, {
+            store.commit([channel], {
                 players: {},
                 turn: 0,
             });
@@ -190,24 +190,21 @@ bot.cmd('yz', ({ send }) => send('Try `help yz`'))
             if (noGame(send, channel) || notInGame(send, channel, user)) return;
 
             send('Resetting Yahtzee! :(');
-            store.commit(channel, {});
+            store.commit([channel], { players: {}, turn: 0 });
         }).desc('Cancel the current Yahtzee! game')
     )
     .sub(
         cmd('roll', ({ send, channel, user }, [dice = '1,2,3,4,5']) => {
             if (noGame(send, channel) || notInGame(send, channel, user)) return;
 
-            const player = store.get<YahtzeePlayer>(
-                [channel, 'players', user.id],
-                {
-                    categories: Object.keys(rules).reduce(
-                        (cats, cat) => ((cats[cat] = null), cats),
-                        {}
-                    ),
-                    rolls: 0,
-                    dice: Array(5),
-                }
-            );
+            const player = store.get([channel, 'players', user.id], {
+                categories: Object.keys(rules).reduce(
+                    (cats, cat) => ((cats[cat] = null), cats),
+                    {}
+                ),
+                rolls: 0,
+                dice: Array(5),
+            });
 
             if (player.rolls >= 4) {
                 send(`You've had your turn ${tag(user)}`);
@@ -253,14 +250,10 @@ bot.cmd('yz', ({ send }) => send('Try `help yz`'))
                 return;
             }
 
-            const player = store.get<YahtzeePlayer>([
-                channel,
-                'players',
-                user.id,
-            ]);
+            const player = store.get([channel, 'players', user.id]);
 
             if (!player) {
-                if (store.get([channel, 'turns']) > 0) {
+                if (store.get([channel, 'turn']) > 0) {
                     send(`You're not in this game ${tag(user)}`);
                 } else {
                     send(`You haven't rolled yet ${tag(user)}`);
@@ -282,11 +275,8 @@ bot.cmd('yz', ({ send }) => send('Try `help yz`'))
             store.commit([channel, 'players', user.id, 'dice'], Array(5));
             store.commit([channel, 'players', user.id, 'rolls'], 4);
 
-            const { players, turn } = store.geet<[string]>([channel]);
+            const { players, turn } = store.get([channel]);
 
-            ['any', 'players'] as PathOf<YahtzeeStore>;
-
-            const b = store.geet<[string, 'players']>([channel, 'players']);
             // check to switch to new turn
             // make sure all players have 4 rolls
             const newTurn = !Object.values(players).some(
@@ -306,7 +296,7 @@ bot.cmd('yz', ({ send }) => send('Try `help yz`'))
                 if (turn === 0) {
                     // allow new people to join the game before second turn
                     send('Ready for the second turn? Say `next turn`');
-                    bot.kw('next turn', (_message, _meta) => {
+                    bot.kw('next turn', () => {
                         nextTurn();
                         bot.kw('next turn', null);
                     });
@@ -320,7 +310,7 @@ bot.cmd('yz', ({ send }) => send('Try `help yz`'))
     )
     .sub(
         cmd('scores', ({ send, channel }) => {
-            if (noGame(channel)) return;
+            if (noGame(send, channel)) return;
 
             const { players } = store.get(channel);
             if (Object.keys(players).length === 0) {
@@ -347,11 +337,11 @@ bot.cmd('yz', ({ send }) => send('Try `help yz`'))
     )
     .sub(
         cmd('dice', ({ send, channel, user }) => {
-            if (noGame(channel) || notInGame(channel, user)) return;
+            if (noGame(send, channel) || notInGame(send, channel, user)) return;
 
             const player = store.get([channel, 'players', user.id]);
             if (!player) {
-                if (store.get([channel, 'turns']) > 0) {
+                if (store.get([channel, 'turn']) > 0) {
                     send(`You're not in this game ${tag(user)}`);
                 } else {
                     send(`You haven't rolled yet ${tag(user)}`);

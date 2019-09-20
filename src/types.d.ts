@@ -92,33 +92,3 @@ export interface SlackMessageEvent {
     text: string;
     user: string;
 }
-
-interface NextInt {
-    0: 1;
-    1: 2;
-    2: 3;
-    3: 4;
-    4: 5;
-    [rest: number]: number;
-}
-
-export type PathType<T, P extends any[], Index extends keyof P & number = 0> = {
-    [K in keyof P & number & Index]: P[K] extends undefined
-        ? T
-        : P[K] extends keyof T
-        ? NextInt[K] extends (keyof P & number)
-            ? PathType<T[P[K]], P, Extract<NextInt[K], keyof P & number>>
-            : T[P[K]]
-        : never;
-}[Index];
-
-type B = PathType<YahtzeeStore, ['channel', 'players']>;
-
-export type Path5<
-    T
-> = keyof T[keyof T][keyof T[keyof T]][keyof T[keyof T][keyof T[keyof T]]];
-export type Path4<T> = keyof T[keyof T][keyof T[keyof T]];
-export type Path3<T> = keyof T[keyof T][keyof T[keyof T]];
-export type Path2<T> = keyof T[keyof T];
-export type Path1<T> = keyof T;
-export type PathOf<T> = [Path1<T>, Path2<T>?, Path3<T>?, Path4<T>?];
