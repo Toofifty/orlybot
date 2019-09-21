@@ -1,5 +1,9 @@
 import { readfile, writefile } from './util';
 
+export interface ChanneledStore<T> {
+    [channel: string]: T;
+}
+
 /**
  * Persistent data storage
  *
@@ -179,7 +183,7 @@ export default class Store<T> {
      * the result
      */
     public update(path: string[], updater: (prev: any) => any, def?: any): any {
-        return this.commit(path, updater(this.get(path, def)));
+        return this.commit(path as any, updater(this.get(path as any, def)));
     }
 
     public get<P0 extends keyof T>(path: [P0], def?: T[P0]): T[P0];
@@ -221,7 +225,7 @@ export default class Store<T> {
             if (result === undefined) throw 'reee';
             return result;
         } catch (err) {
-            if (def) this.commit(path, def);
+            if (def) this.commit(path as any, def);
             return def;
         }
     }

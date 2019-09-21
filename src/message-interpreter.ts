@@ -1,7 +1,7 @@
 import { SlackMessageEvent, CommandContext } from './types';
 import { Bot } from './bot';
 import UserError from './user-error';
-import { pre, tokenize } from './util';
+import { pre, tokenize, tag } from './util';
 
 const IGNORE_TYPE = ['error', 'hello', 'user_typing'];
 const IGNORE_SUBTYPE = ['bot_message', 'channel_join'];
@@ -18,7 +18,7 @@ export default class MessageInterpreter {
             try {
                 await this.onMessage(message);
             } catch (error) {
-                this.returnErrorToChannel(error, message.channel);
+                this.returnErrorToChannel(error, message.channel, message.user);
             }
         });
     }
@@ -26,11 +26,15 @@ export default class MessageInterpreter {
     /**
      * Print the error message to the specified channel
      */
-    private returnErrorToChannel(error: Error, channel: string): void {
+    private returnErrorToChannel(
+        error: Error,
+        channel: string,
+        user: string
+    ): void {
         if (error instanceof UserError) {
-            this.bot.send(channel, `\`!\` ${error.message}`);
+            this.bot.send(channel, `\`!\` ${error.message} (${tag(user)})`);
         } else {
-            this.bot.send(channel, pre(`!! ${error.message}`));
+            this.bot.send(channel, pre(`!! ${error.message} (${tag(user)})`));
             // re-throw to get stack trace
             throw error;
         }

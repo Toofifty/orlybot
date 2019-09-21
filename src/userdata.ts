@@ -1,11 +1,11 @@
 import Store from './store';
-import { User } from 'types';
+import { User, Dict } from 'types';
 
 /**
  * Persist data from users
  */
 class UserData {
-    private store: Store;
+    private store: Store<Dict<User>>;
 
     constructor() {
         this.store = Store.create('userdata', {});
@@ -18,11 +18,11 @@ class UserData {
         if (typeof user === 'object') {
             user = user.id;
         }
-        if (!this.store.get(user)) {
-            this.store.commit(user, {});
+        if (!this.store.get([user])) {
+            this.store.commit([user], { id: '', name: 'unknown' });
         }
 
-        return this.store.commit([user, key], value);
+        return this.store.commit([user, key as any], value);
     }
 
     /**
@@ -32,7 +32,7 @@ class UserData {
         if (typeof user === 'object') {
             user = user.id;
         }
-        return this.store.get([user, key], def);
+        return this.store.get([user, key as any], def);
     }
 
     /**
@@ -47,7 +47,7 @@ class UserData {
         if (typeof user === 'object') {
             user = user.id;
         }
-        return this.store.update([user, key], updater, def);
+        return this.store.update([user, key as any], updater, def);
     }
 
     /**
@@ -57,7 +57,7 @@ class UserData {
         if (typeof user === 'object') {
             user = user.id;
         }
-        return this.store.get(user);
+        return this.store.get([user]);
     }
 
     /**

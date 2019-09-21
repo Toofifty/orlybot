@@ -1,8 +1,9 @@
 import bot from '../bot';
 import { cmd } from '../command';
-import Store from '../store';
+import Store, { ChanneledStore } from '../store';
 import { pre, tag, emoji, randint, table } from '../util';
-import { Dict, User, PathType, PathOf } from 'types';
+import { Dict, User } from 'types';
+import { error } from '../user-error';
 
 type Rule = (dice: number[]) => number;
 
@@ -12,16 +13,12 @@ interface YahtzeePlayer {
     dice: (number | undefined)[];
 }
 
-export interface YahtzeeStore {
-    [channel: string]: YahtzeeChannelStore;
-}
-
-interface YahtzeeChannelStore {
+interface YahtzeeStore {
     players: Dict<YahtzeePlayer>;
     turn: number;
 }
 
-const store = Store.create('yahtzee', {} as YahtzeeStore);
+const store = Store.create('yahtzee', {} as ChanneledStore<YahtzeeStore>);
 
 /**
  * Sum of dice
@@ -236,7 +233,23 @@ bot.cmd('yz', ({ send }) => send('Try `help yz`'))
             );
         })
             .desc('Roll your dice')
-            .arg({ name: 'dice-numbers', def: '1,2,3,4,5' })
+            .arg({
+                name: 'dice-numbers',
+                def: '1,2,3,4,5',
+                validator: value => {
+                    const nums = value.split(',').map(Number);
+                    if (nums.length > 5) {
+                        error('Too many dice specified');
+                    }
+                    nums.forEach(num => {
+                        if (isNaN(num) || num < 1 || num > 5) {
+                            error(
+                                'You can only specify dice numbers between 1 and 5'
+                            );
+                        }
+                    });
+                },
+            })
     )
     .sub(
         cmd('save', ({ send, channel, user }, categories) => {
@@ -306,13 +319,13 @@ bot.cmd('yz', ({ send }) => send('Try `help yz`'))
             }
         })
             .desc('Finish your turn')
-            .arg({ name: 'category' })
+            .arg({ name: 'category', required: true })
     )
     .sub(
         cmd('scores', ({ send, channel }) => {
             if (noGame(send, channel)) return;
 
-            const { players } = store.get(channel);
+            const { players } = store.get([channel]);
             if (Object.keys(players).length === 0) {
                 send('No scores to show');
                 return;
@@ -376,9 +389,4 @@ bot.cmd('yz', ({ send }) => send('Try `help yz`'))
             };
             send(pre(table(['description'], Object.keys(defs), [defs])));
         }).desc('Get Yahtzee! game help')
-    )
-    .sub(
-        cmd('_eval', ({ send }, [code]) => {
-            send(pre(eval(code)));
-        }).hide()
     );

@@ -6,6 +6,7 @@ import {
     CommandContext,
 } from './types';
 import { stringifyArg } from './util';
+import { error } from './user-error';
 
 /**
  * Create a new command
@@ -109,6 +110,25 @@ export default class Command implements CommandData {
     }
 
     /**
+     * Validate arguments against the argument list
+     */
+    private validate(args: string[]): void {
+        if (args.length > this.argz.length) {
+            const unexpected = args.slice(this.argz.length);
+            error(
+                `Too many arguments - unexpected \`${unexpected.join(' ')}\``
+            );
+        }
+        this.argz.forEach(({ required, validator, name, def }, i) => {
+            const arg = args[i];
+            if (arg === undefined && required && def === undefined) {
+                error(`Argument \`${name}\` is required`);
+            }
+            arg !== undefined && validator && validator(arg);
+        });
+    }
+
+    /**
      * Run command
      */
     run(context: CommandContext, args: string[]): void {
@@ -116,6 +136,8 @@ export default class Command implements CommandData {
         if (sub && this.subcommands[sub]) {
             return this.subcommands[args.shift()].run(context, args);
         }
+
+        this.validate(args);
 
         return this.callback(context, args);
     }

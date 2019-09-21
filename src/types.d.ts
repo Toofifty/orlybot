@@ -1,5 +1,4 @@
 import Command from 'command';
-import { YahtzeeStore } from 'modules/yahtzee';
 
 export interface User {
     id: string;
@@ -71,6 +70,7 @@ export interface CommandData {
 export interface CommandArgument {
     name: string;
     required: boolean;
+    validator?: (value: string) => void;
     def?: any;
 }
 

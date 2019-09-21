@@ -5,6 +5,7 @@ import userdata from '../userdata';
 import { cmd } from '../command';
 import { CommandContext } from 'types';
 import fetch from 'node-fetch';
+import { error } from '../user-error';
 
 interface Trivia {
     answerId: number | null;
@@ -83,7 +84,14 @@ bot.cmd('trivia', async ({ send }, [arg]) => {
     trivia.listen();
 })
     .desc('Play trivia!')
-    .arg({ name: 'difficulty', def: 'easy' })
+    .arg({
+        name: 'difficulty',
+        def: 'easy',
+        validator: value => {
+            if (!['easy', 'medium', 'hard'].includes(value))
+                error(`Unknown difficulty \`${value}\``);
+        },
+    })
     .sub(
         cmd('cancel', ({ send }) => {
             if (trivia.answerId === null) {
