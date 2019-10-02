@@ -1,6 +1,7 @@
 import 'dotenv/config';
 
-// import './modules/cards';
+import './modules/blackjack';
+import './modules/cards';
 // import './modules/cleverbot';
 import './modules/reddit';
 import './modules/misc';

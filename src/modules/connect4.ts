@@ -84,21 +84,18 @@ bot.cmd('c4', ({ send }) => send('Try `help c4`'))
     .sub(
         cmd('place', ({ user, send }, [columnArg, otherTag]) => {
             if (!otherTag) {
-                send(
+                error(
                     `You need to tag who you're playing against, like \`c4 place ${columnArg} @user\``
                 );
-                return;
             }
             const other = checkPlayers(user, otherTag);
             const game = store.get([gamename(user, other)]);
             if (user.id !== game.players[game.turn].id) {
-                send(`It's not your turn ${tag(user)}`);
-                return;
+                error(`It's not your turn ${tag(user)}`);
             }
             const column = Number(columnArg);
             if (!column || column < 1 || column > 7) {
-                send(`Not a valid column ${tag(user)}`);
-                return;
+                error(`Not a valid column ${tag(user)}`);
             }
             for (let i = 5; i >= 0; i--) {
                 if (game.board[i][column - 1] === 0) {
