@@ -114,7 +114,11 @@ const noGame = (send: (text: string) => void, channel: string) => {
 /**
  * Check if the user is in the game (and send channel)
  */
-const notInGame = (send: (text: string) => void, channel: string, user) => {
+const notInGame = (
+    send: (text: string) => void,
+    channel: string,
+    user: User
+) => {
     if (
         store.get([channel, 'turn']) > 0 &&
         !store.get([channel, 'players', user.id])

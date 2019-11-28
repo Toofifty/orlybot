@@ -39,3 +39,8 @@ export const renderHand = (cards: Card[]) => {
         }, [])
         .join('\n');
 };
+
+export const renderMiniHand = (cards: Card[], brackets: boolean = true) =>
+    (brackets ? '[*' : '*') +
+    cards.map(renderMini).join(brackets ? '*] [*' : ' ') +
+    (brackets ? '*]' : '*');

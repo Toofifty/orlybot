@@ -168,5 +168,11 @@ export const table = (
     ].join('\n');
 };
 
+/**
+ * Create a callback to call multiple functions
+ */
+export const callMany = (...fns: Function[]) => (...args: any) =>
+    fns.forEach(fn => fn(args));
+
 export const readfile = promisify(fs.readFile);
 export const writefile = promisify(fs.writeFile);
