@@ -208,6 +208,7 @@ export const makeEffectRunner = (store: Store<Dict<BlackjackStore>>) => (
                 player.previousBet = 0;
                 player.totalBet = 0;
                 player.hand = [];
+                player.handStatus = HandStatus.playing;
                 updatePlayer(player);
             });
 
