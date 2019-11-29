@@ -8,7 +8,7 @@ class UserData {
     private store: Store<Dict<User>>;
 
     constructor() {
-        this.store = Store.create('userdata', {});
+        this.store = Store.create('users', {});
     }
 
     /**
