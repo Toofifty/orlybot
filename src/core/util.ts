@@ -115,6 +115,9 @@ export const tokenize = (str: string): string[] =>
                     working: '',
                 };
             }
+            if (letter === ' ' && !quote && !working) {
+                return { quote, tokens, working };
+            }
             if (letter === ' ' && !quote) {
                 return { quote, tokens: [...tokens, working], working: '' };
             }

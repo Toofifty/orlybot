@@ -147,6 +147,17 @@ export class Bot {
         }
     }
 
+    /**
+     * Pass context through to new command, a-la
+     * an alias
+     */
+    public passThrough(fullCmd: string): CommandCallback {
+        return (context: CommandContext, dynArgs: string[]) => {
+            const [command, ...args] = fullCmd.split(' ');
+            return this.executeCommand(command, context, [...args, ...dynArgs]);
+        };
+    }
+
     public executeKeyword(
         keyword: string,
         context: CommandContext,

@@ -113,12 +113,12 @@ export default class Command implements CommandData {
      * Validate arguments against the argument list
      */
     private validate(args: string[]): void {
-        if (args.length > this.argz.length) {
-            const unexpected = args.slice(this.argz.length);
-            error(
-                `Too many arguments - unexpected \`${unexpected.join(' ')}\``
-            );
-        }
+        // if (args.length > this.argz.length) {
+        //     const unexpected = args.slice(this.argz.length);
+        //     error(
+        //         `Too many arguments - unexpected \`${unexpected.join(' ')}\``
+        //     );
+        // }
         this.argz.forEach(({ required, validator, name, def }, i) => {
             const arg = args[i];
             if (arg === undefined && required && def === undefined) {
