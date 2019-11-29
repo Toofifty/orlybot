@@ -9,6 +9,7 @@ bot.cmd('help', ({ send }, [cmd]) => {
     send(
         Object.keys(commands)
             .map(key => commands[key].help)
+            .sort()
             .join('\n') || 'Nothing interesting happens'
     );
 })

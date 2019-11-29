@@ -12,7 +12,7 @@ export interface LunchRecord {
 }
 
 export interface LunchStore {
-    today: LunchRecord | null;
+    today: LunchRecord;
     history: LunchRecord[];
     options: LunchOption[];
     categories: string[];

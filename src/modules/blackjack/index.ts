@@ -94,6 +94,8 @@ const findPlayer = (channel: string, user: User) =>
         .get([channel, 'players'], [])
         .find(player => player.user.id === user.id);
 
+bot.cmd('b', bot.passThrough('blackjack'), 'Shortcut for `blackjack`');
+
 bot.cmd('blackjack', ({ send }) => send('Try `help blackjack`'), 'Gambling!')
     .sub(
         cmd('new', ({ send, channel, user }, [cash = '100']) => {

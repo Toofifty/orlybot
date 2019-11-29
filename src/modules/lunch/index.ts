@@ -3,6 +3,7 @@ import Store from 'core/store';
 import { Dict } from 'core/types';
 import { cmd } from 'core/command';
 import { error } from 'core/user-error';
+import { tag } from 'core/util';
 import { LunchStore } from './types';
 
 /**
@@ -24,34 +25,69 @@ import { LunchStore } from './types';
  */
 
 const store = Store.create('lunch', {} as Dict<LunchStore>);
+const LUNCH_TRAIN = ':steam_locomotive::railway_car::railway_car:';
 
-const checkStore = (channel: string) =>
-    !store.get([channel]) && store.commit([channel], defaultStore());
+const checkStore = (channel: string) => {
+    const { today, history } = store.get([channel], defaultStore());
+    if (today.date !== new Date().toDateString()) {
+        store.commit([channel, 'history'], [...history, today]);
+        store.commit([channel, 'today'], {
+            option: null,
+            date: new Date().toDateString(),
+            participants: [],
+            successful: false,
+        });
+    }
+};
 
 const defaultStore = (): LunchStore => ({
-    today: null,
+    today: {
+        option: null,
+        date: new Date().toDateString(),
+        participants: [],
+        successful: false,
+    },
     history: [],
     options: [],
     categories: [],
 });
 
+bot.cmd('l', bot.passThrough('lunch'), 'Shortcut for `lunch`');
 bot.cmd('lunch?', bot.passThrough('lunch'), "What's for lunch?");
-bot.cmd("what's for lunch?", bot.passThrough('lunch'), "What's for lunch?");
+bot.cmd('whats for lunch?', bot.passThrough('lunch'), "What's for lunch?");
+bot.kw("what's for lunch?", ctx => bot.passThrough('lunch')(ctx, []));
 
 bot.cmd(
     'lunch',
     ({ channel, send, user }) => {
         const { today, options } = store.get([channel], defaultStore());
 
-        if (today) return send(`Let's get *${today.option.name}*!`);
+        if (today.option) return send(`Let's get *${today.option.name}*!`);
 
         if (options.length === 0)
-            return error("You haven't given me any options!");
+            return error(
+                "I don't have any lunch options! Add some with `lunch options:add <name> <category>`"
+            );
     },
     "What's for lunch?"
 )
     .sub(
-        cmd('add', ({ channel, send }, [name, category]) => {
+        cmd('options', ({ channel, send }) => {
+            checkStore(channel);
+            const options = store.get([channel, 'options']);
+
+            if (options.length === 0)
+                return error('No options found :confused:');
+
+            send(
+                `All options:\n ${options
+                    .map(option => `*${option.name}* - ${option.category}`)
+                    .join('\n')}`
+            );
+        }).desc('List all lunch options')
+    )
+    .sub(
+        cmd('options:add', ({ channel, send }, [name, category]) => {
             const { options, categories } = store.get(
                 [channel],
                 defaultStore()
@@ -76,7 +112,7 @@ bot.cmd(
             .arg({ name: 'category', required: true })
     )
     .sub(
-        cmd('remove', ({ channel, send }, [name]) => {
+        cmd('options:remove', ({ channel, send }, [name]) => {
             checkStore(channel);
             const options = store.get([channel, 'options']);
 
@@ -93,21 +129,6 @@ bot.cmd(
             .arg({ name: 'name', required: true })
     )
     .sub(
-        cmd('options', ({ channel, send }) => {
-            checkStore(channel);
-            const options = store.get([channel, 'options']);
-
-            if (options.length === 0)
-                return error('No options found :confused:');
-
-            send(
-                `All options:\n ${options
-                    .map(option => `*${option.name}* - ${option.category}`)
-                    .join('\n')}`
-            );
-        })
-    )
-    .sub(
         cmd('categories', ({ channel, send }) => {
             checkStore(channel);
             const categories = store.get([channel, 'categories']);
@@ -116,57 +137,108 @@ bot.cmd(
                 return error('No categories found :confused:');
 
             send(`All categories: ${categories.join(', ')}`);
-        })
-            .desc('List all lunch categories')
-            .sub(
-                cmd('add', ({ channel, send }, [name]) => {
-                    checkStore(channel);
-                    const categories = store.get([channel, 'categories']);
-
-                    if (categories.includes(name.toLowerCase()))
-                        return error('That category is already added');
-
-                    store.commit(
-                        [channel, 'categories'],
-                        [...categories, name.toLowerCase()]
-                    );
-                    send(`Added new category: *${name.toLowerCase()}*`);
-                })
-                    .desc('Add a new lunch category')
-                    .arg({ name: 'name', required: true })
-            )
-            .sub(
-                cmd('remove', ({ channel, send }, [name]) => {
-                    const { categories, options } = store.get(
-                        [channel],
-                        defaultStore()
-                    );
-
-                    if (!categories.includes(name.toLowerCase()))
-                        return error("Couldn't find that category");
-
-                    if (options.some(option => option.category === name))
-                        return error(
-                            'Can only delete a category if it has no options'
-                        );
-
-                    const index = categories.indexOf(name.toLowerCase());
-                    categories.splice(index, 1);
-
-                    store.commit([channel, 'categories'], categories);
-                    send(`Removed category: *${name.toLowerCase()}*`);
-                })
-                    .desc('Remove a lunch category')
-                    .arg({ name: 'name', required: true })
-            )
+        }).desc('List all lunch categories')
     )
-    .sub(cmd('who').desc('Check who is going to lunch today'))
     .sub(
-        cmd('join').desc(
-            'Join the lunchtrain! :steam_locomotive::railway_car::railway_car:'
-        )
+        cmd('categories:add', ({ channel, send }, [name]) => {
+            checkStore(channel);
+            const categories = store.get([channel, 'categories']);
+
+            if (categories.includes(name.toLowerCase()))
+                return error('That category is already added');
+
+            store.commit(
+                [channel, 'categories'],
+                [...categories, name.toLowerCase()]
+            );
+            send(`Added new category: *${name.toLowerCase()}*`);
+        })
+            .desc('Add a new lunch category')
+            .arg({ name: 'name', required: true })
     )
-    .sub(cmd('leave').desc('Leave the lunchtrain :cry:'))
+    .sub(
+        cmd('categories:remove', ({ channel, send }, [name]) => {
+            const { categories, options } = store.get(
+                [channel],
+                defaultStore()
+            );
+
+            if (!categories.includes(name.toLowerCase()))
+                return error("Couldn't find that category");
+
+            if (options.some(option => option.category === name))
+                return error('Can only delete a category if it has no options');
+
+            const index = categories.indexOf(name.toLowerCase());
+            categories.splice(index, 1);
+
+            store.commit([channel, 'categories'], categories);
+            send(`Removed category: *${name.toLowerCase()}*`);
+        })
+            .desc('Remove a lunch category')
+            .arg({ name: 'name', required: true })
+    )
+    .sub(
+        cmd('who', ({ channel, send }) => {
+            checkStore(channel);
+            const participants = store.get([channel, 'today', 'participants']);
+
+            if (participants.length === 0)
+                return send(
+                    `Nobody has joined the lunch train ${LUNCH_TRAIN} yet :confused:. Join using \`lunch join\`!`
+                );
+
+            send(
+                `Choo choo! Here's how the lunch train is looking today: \n${LUNCH_TRAIN}${participants
+                    .map(id => tag(id))
+                    .join(':railway_car:')}:railway_car:`
+            );
+
+            if (!store.get([channel, 'today', 'option']))
+                send(
+                    "Hmmm... we haven't picked a restaurant yet. Ask me `whats for lunch?` and I'll choose one."
+                );
+        }).desc('Check who is going to lunch today')
+    )
+    .sub(
+        cmd('join', ({ channel, send, user }) => {
+            checkStore(channel);
+            const participants = store.get([channel, 'today', 'participants']);
+
+            if (participants.includes(user.id))
+                return send(
+                    `You're already on the lunch train! A bit eager today, aren't we ${tag(
+                        user
+                    )}?`
+                );
+
+            store.commit(
+                [channel, 'today', 'participants'],
+                [...participants, user.id]
+            );
+            send(
+                `${tag(
+                    user
+                )} joined the lunch train! ${LUNCH_TRAIN} Anyone else?`
+            );
+        }).desc(`Join the lunchtrain! ${LUNCH_TRAIN}`)
+    )
+    .sub(
+        cmd('leave', ({ channel, send, user }) => {
+            checkStore(channel);
+            const participants = store.get([channel, 'today', 'participants']);
+
+            if (!participants.includes(user.id))
+                return error(`You're not on the lunch train ${tag(user)}`);
+
+            const index = participants.indexOf(user.id);
+            participants.splice(index, 1);
+
+            store.commit([channel, 'today', 'participants'], participants);
+
+            send(`${tag(user)} left the lunch train :cry:`);
+        }).desc('Leave the lunchtrain :cry:')
+    )
     .sub(
         cmd('vote')
             .desc("Vote on today's lunch option")
