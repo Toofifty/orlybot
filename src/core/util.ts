@@ -1,13 +1,13 @@
 import * as fs from 'fs';
 import { promisify } from 'util';
-import bot from './bot';
 import {
     User,
     Dict,
     KeyPredicate,
     ElementPredicate,
     CommandArgument,
-} from 'types';
+} from './types';
+import bot from './bot';
 
 /**
  * Slack tag

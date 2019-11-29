@@ -1,6 +1,6 @@
-import bot from '../bot';
 import fetch from 'node-fetch';
-import { randcolour } from '../util';
+import bot from 'core/bot';
+import { randcolour } from 'core/util';
 
 const BASE_URL = 'https://min-api.cryptocompare.com/data/pricemultifull';
 

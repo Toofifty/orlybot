@@ -1,8 +1,8 @@
 {
-    "name": "orlybo",
+    "name": "orlybot",
     "version": "0.0.1",
     "description": "Orly Slackbot",
-    "main": "src/main.js",
+    "main": "src/index.js",
     "author": "Alex Matheson <alex@matho.me>",
     "license": "MIT",
     "dependencies": {
@@ -15,11 +15,12 @@
         "dotenv": "^7.0.0",
         "node-fetch": "^2.6.0",
         "nodemon": "^1.18.10",
-        "slackbots": "^1.2.0"
+        "slackbots": "^1.2.0",
+        "tsconfig-paths": "^3.9.0"
     },
     "scripts": {
         "build": "tsc -p .",
-        "start": "node dist/orly.js",
+        "start": "node -r ./paths.js dist/index.js",
         "bot": "nodemon -e ts -w src -x 'yarn build && yarn start'"
     },
     "devDependencies": {

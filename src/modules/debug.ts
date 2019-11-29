@@ -1,7 +1,7 @@
-import bot from '../bot';
-import { tag, ticks, pre } from '../util';
-import userdata from '../userdata';
-import Store from '../store';
+import bot from 'core/bot';
+import { tag, ticks, pre } from 'core/util';
+import userdata from 'core/userdata';
+import Store from 'core/store';
 
 bot.cmd('_users', ({ send }) => {
     send(JSON.stringify(bot.getUsers()));

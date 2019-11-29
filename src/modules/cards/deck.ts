@@ -1,5 +1,5 @@
+import { randint } from 'core/util';
 import { SUITS } from './constants';
-import { randint } from '../../util';
 import { normval } from './card';
 import { Deck } from './types';
 

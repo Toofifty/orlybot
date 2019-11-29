@@ -1,10 +1,10 @@
-import Store from '../../store';
-import { Dict } from '../../types';
+import Store from 'core/store';
+import { Dict } from 'core/types';
+import bot from 'core/bot';
+import { pre, tag, randint } from 'core/util';
 import { BlackjackStore, GameStatus, Player, HandStatus } from './types';
 import { shuffle, draw } from '../cards/deck';
-import bot from '../../bot';
 import { renderHand, renderMiniHand } from '../cards/render';
-import { pre, tag, randint } from '../../util';
 import { getValue } from './cards';
 
 export const makeEffectRunner = (store: Store<Dict<BlackjackStore>>) => (

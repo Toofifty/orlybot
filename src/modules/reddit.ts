@@ -1,7 +1,7 @@
-import bot from '../bot';
 import fetch from 'node-fetch';
-import { error } from '../user-error';
-import { readfile, writefile } from '../util';
+import bot from 'core/bot';
+import { error } from 'core/user-error';
+import { readfile, writefile } from 'core/util';
 
 let seen = [];
 

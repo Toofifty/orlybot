@@ -1,5 +1,5 @@
+import { User } from 'core/types';
 import { Deck, Card } from '../cards/types';
-import { User } from '../../types';
 
 export enum HandStatus {
     playing = 'Playing',

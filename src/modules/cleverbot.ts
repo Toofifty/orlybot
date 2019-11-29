@@ -1,7 +1,7 @@
-import bot from '../bot';
 import cleverbotIO from 'cleverbot.io';
-import { tag } from '../util';
-import { error } from '../user-error';
+import bot from 'core/bot';
+import { tag } from 'core/util';
+import { error } from 'core/user-error';
 
 if (process.env.CLEVERBOT_ENABLED !== '0') {
     const NAME = 'Fred';

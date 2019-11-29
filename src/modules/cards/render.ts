@@ -1,5 +1,5 @@
+import { emoji } from 'core/util';
 import { print, symbol } from './card';
-import { emoji } from '../../util';
 import { Card } from './types';
 
 /**

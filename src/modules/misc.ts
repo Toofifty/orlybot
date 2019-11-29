@@ -1,7 +1,7 @@
-import bot from '../bot';
-import { pickBy, emoji, randint, tag } from '../util';
 import * as request from 'request';
 import * as decode from 'decode-html';
+import bot from 'core/bot';
+import { pickBy, emoji, randint, tag } from 'core/util';
 
 bot.cmd('help', ({ send }, [cmd]) => {
     let commands = bot.getCommands();

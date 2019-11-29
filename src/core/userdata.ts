@@ -1,5 +1,5 @@
 import Store from './store';
-import { User, Dict } from 'types';
+import { User, Dict } from './types';
 
 /**
  * Persist data from users

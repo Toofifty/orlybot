@@ -1,9 +1,9 @@
-import bot from '../bot';
-import { cmd } from '../command';
-import Store, { ChanneledStore } from '../store';
-import { pre, tag, emoji, randint, table } from '../util';
-import { Dict, User } from 'types';
-import { error } from '../user-error';
+import bot from 'core/bot';
+import { cmd } from 'core/command';
+import Store, { ChanneledStore } from 'core/store';
+import { pre, tag, emoji, randint, table } from 'core/util';
+import { Dict, User } from 'core/types';
+import { error } from 'core/user-error';
 
 type Rule = (dice: number[]) => number;
 

@@ -1,11 +1,11 @@
-import bot from '../bot';
 import * as decode from 'decode-html';
-import { randint, tag } from '../util';
-import userdata from '../userdata';
-import { cmd } from '../command';
-import { CommandContext } from 'types';
 import fetch from 'node-fetch';
-import { error } from '../user-error';
+import bot from 'core/bot';
+import { randint, tag } from 'core/util';
+import userdata from 'core/userdata';
+import { cmd } from 'core/command';
+import { CommandContext } from 'core/types';
+import { error } from 'core/user-error';
 
 interface Trivia {
     answerId: number | null;

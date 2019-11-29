@@ -1,11 +1,11 @@
-import bot from '../../bot';
-import { cmd } from '../../command';
-import { pre } from '../../util';
+import bot from 'core/bot';
+import { cmd } from 'core/command';
+import { pre } from 'core/util';
+import Store from 'core/store';
+import { error } from 'core/user-error';
 import { toCards } from './card';
 import { renderHand, renderMini } from './render';
-import Store from '../../store';
 import { create as createDeck, shuffle, draw } from './deck';
-import { error } from '../../user-error';
 import { Deck } from './types';
 
 interface CardStore {

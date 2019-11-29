@@ -1,9 +1,9 @@
-import bot from '../bot';
-import { cmd } from '../command';
-import { userFromTag, tag, pre, emoji } from '../util';
-import Store from '../store';
-import { User, Dict } from 'types';
-import { error } from '../user-error';
+import bot from 'core/bot';
+import { cmd } from 'core/command';
+import { userFromTag, tag, emoji } from 'core/util';
+import Store from 'core/store';
+import { User, Dict } from 'core/types';
+import { error } from 'core/user-error';
 
 const EMPTY = ':white_circle:';
 const RED = ':red_circle:';

@@ -1,10 +1,10 @@
-import bot from '../../bot';
-import { cmd } from '../../command';
-import { User, Dict } from '../../types';
-import Store from '../../store';
+import bot from 'core/bot';
+import { cmd } from 'core/command';
+import { User, Dict } from 'core/types';
+import Store from 'core/store';
+import { tag, userFromTag } from 'core/util';
+import { error } from 'core/user-error';
 import { create as newDeck, shuffle } from '../cards/deck';
-import { tag, userFromTag } from '../../util';
-import { error } from '../../user-error';
 import { makeEffectRunner } from './effects';
 import { BlackjackStore, GameStatus, HandStatus, Player } from './types';
 
