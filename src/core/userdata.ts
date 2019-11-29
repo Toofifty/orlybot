@@ -8,21 +8,24 @@ class UserData {
     private store: Store<Dict<User>>;
 
     constructor() {
-        this.store = Store.create('users', {});
+        this.store = Store.create('users', {} as Dict<User>);
     }
 
     /**
      * Set user key value
      */
     set<T>(user: string | User, key: string, value: T) {
-        if (typeof user === 'object') {
-            user = user.id;
-        }
-        if (!this.store.get([user])) {
-            this.store.commit([user], { id: '', name: 'unknown' });
+        const id = typeof user === 'object' ? user.id : user;
+
+        if (!this.store.get([id])) {
+            this.store.commit([id], {
+                id,
+                name: 'unknown',
+                profile: { display_name: 'unknown' },
+            });
         }
 
-        return this.store.commit([user, key as any], value);
+        return this.store.commit([id, key as any], value);
     }
 
     /**

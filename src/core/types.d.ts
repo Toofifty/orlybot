@@ -1,8 +1,13 @@
 import Command from './command';
 
+export interface Profile {
+    display_name: string;
+}
+
 export interface User {
     id: string;
     name: string;
+    profile: Profile;
 }
 
 export interface Dict<T> {
@@ -78,11 +83,13 @@ export interface QueuedMessage {
     channel: string;
     message: string;
     attachment?: any;
+    isPrivate?: boolean;
 }
 
 export interface Channel {
     id: string;
     name: string;
+    is_private: boolean;
 }
 
 export interface SlackMessageEvent {

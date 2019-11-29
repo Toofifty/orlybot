@@ -1,4 +1,4 @@
-import { SlackMessageEvent, CommandContext } from './types';
+import { SlackMessageEvent, CommandContext, Channel } from './types';
 import { Bot } from './bot';
 import UserError from './user-error';
 import { pre, tokenize, tag } from './util';
@@ -43,21 +43,33 @@ export default class MessageInterpreter {
     /**
      * On slack message listener
      */
-    private onMessage({
+    private async onMessage({
         type,
         subtype,
         ...message
     }: SlackMessageEvent): Promise<void[]> {
         this.bot.initializeData();
+
+        if (message.channel && (message.channel as any).id) {
+            const newChannel = (message.channel as any) as Channel;
+            console.log(`Invited to new channel: #${newChannel.name}`);
+            await this.bot.addChannel(newChannel);
+        }
+
         if (!message.text || this.isIgnoredType(type, subtype)) return;
 
+        const user = this.bot.getUserById(message.user);
         const channel = this.bot.getChannelName(message.channel);
         const terms = message.text.split('&amp;&amp;');
+
+        console.log(
+            `#${channel} ${user.profile.display_name}: ${message.text}`
+        );
 
         const rootContext: CommandContext = {
             channel,
             args: [],
-            user: this.bot.getUserById(message.user),
+            user,
             message: message.text,
             term: '',
             send: (message: string, timeout: number = 0) => {

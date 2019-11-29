@@ -51,8 +51,13 @@ export class Bot {
                     channel,
                     message,
                     attachment = {},
+                    isPrivate,
                 } = this.queue.shift();
-                this.bot.postMessageToChannel(channel, message, attachment);
+                if (isPrivate) {
+                    this.bot.postMessageToGroup(channel, message, attachment);
+                } else {
+                    this.bot.postMessageToChannel(channel, message, attachment);
+                }
             }
         }, 1000);
     }
@@ -68,6 +73,11 @@ export class Bot {
         } catch (error) {
             writefile('./data/channels.json', '{}');
         }
+    }
+
+    public async addChannel(channel: Channel): Promise<void> {
+        this.channels[channel.id] = channel;
+        await writefile('./data/channels.json', JSON.stringify(this.channels));
     }
 
     public initializeData(): void {
@@ -99,6 +109,10 @@ export class Bot {
         }
 
         return this.channels[id];
+    }
+
+    public getChannelByName(name: string): Channel {
+        return find(this.channels, channel => channel.name === name);
     }
 
     /**
@@ -215,11 +229,23 @@ export class Bot {
             channel = this.getChannelName(channel);
         }
 
+        if (typeof channel !== 'object') {
+            channel = this.getChannelByName(channel);
+        }
+
         if (!timeout) {
-            this.queue.push({ channel, message });
+            this.queue.push({
+                channel: channel.name,
+                message,
+                isPrivate: channel.is_private,
+            });
         } else {
             setTimeout(() => {
-                this.queue.push({ channel: channel as string, message });
+                this.queue.push({
+                    channel: (channel as Channel).name,
+                    message,
+                    isPrivate: (channel as Channel).is_private,
+                });
             }, timeout);
         }
     }
