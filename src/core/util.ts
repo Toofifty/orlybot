@@ -179,3 +179,4 @@ export const callMany = (...fns: Function[]) => (...args: any) =>
 
 export const readfile = promisify(fs.readFile);
 export const writefile = promisify(fs.writeFile);
+export const fileExists = promisify(fs.exists);

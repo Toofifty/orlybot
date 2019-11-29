@@ -1,4 +1,5 @@
 import * as Slackbot from 'slackbots';
+import * as fs from 'fs';
 import Command from './command';
 import { pickBy, find, readfile, writefile } from './util';
 import {
@@ -23,6 +24,14 @@ export class Bot {
     private admins: string[] = [];
 
     constructor() {
+        if (!process.env.SLACK_TOKEN || !process.env.SLACK_NAME) {
+            throw new Error(
+                'Could not load Slack token or name from .env file'
+            );
+        }
+
+        if (!fs.existsSync('./data')) fs.mkdirSync('./data');
+
         this.bot = new Slackbot({
             token: process.env.SLACK_TOKEN,
             name: process.env.SLACK_NAME,

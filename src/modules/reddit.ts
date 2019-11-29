@@ -9,7 +9,10 @@ readfile('./data/seen.csv', 'utf8')
     .then(data => {
         seen = data.split(',');
     })
-    .catch(err => console.error(err));
+    .catch(err => {
+        if (err.code === 'ENOENT') return writefile('./data/seen.csv', '');
+        console.error(err);
+    });
 
 interface RedditResponse {
     kind: string;
