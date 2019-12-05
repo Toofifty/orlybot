@@ -1,6 +1,9 @@
+export type WeightedOption = LunchOption & { weight: number };
+
 export interface LunchOption {
     name: string;
     category: string;
+    icon?: string;
 }
 
 export interface LunchRecord {
@@ -9,6 +12,8 @@ export interface LunchRecord {
     /** list of user IDs */
     participants: string[];
     successful: boolean;
+    rerollVoters?: string[];
+    rating?: number;
 }
 
 export interface LunchStore {

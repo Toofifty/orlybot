@@ -5,6 +5,7 @@ import { cmd } from 'core/command';
 import { error } from 'core/user-error';
 import { tag } from 'core/util';
 import { LunchStore } from './types';
+import { decide, weight } from './decide';
 
 /**
  * Lunch module
@@ -35,7 +36,7 @@ const checkStore = (channel: string) => {
             option: null,
             date: new Date().toDateString(),
             participants: [],
-            successful: false,
+            successful: true,
         });
     }
 };
@@ -45,7 +46,7 @@ const defaultStore = (): LunchStore => ({
         option: null,
         date: new Date().toDateString(),
         participants: [],
-        successful: false,
+        successful: true,
     },
     history: [],
     options: [],
@@ -60,14 +61,30 @@ bot.kw("what's for lunch?", ctx => bot.passThrough('lunch')(ctx, []));
 bot.cmd(
     'lunch',
     ({ channel, send, user }) => {
-        const { today, options } = store.get([channel], defaultStore());
+        const { today, options, history } = store.get(
+            [channel],
+            defaultStore()
+        );
 
-        if (today.option) return send(`Let's get *${today.option.name}*!`);
+        if (today.option)
+            return send(
+                `I still think we should get ${
+                    today.option.icon ? `${today.option.icon} ` : ''
+                }*${today.option.name}*.`
+            );
 
         if (options.length === 0)
             return error(
-                "I don't have any lunch options! Add some with `lunch options:add <name> <category>`"
+                "I don't have any lunch options! Add some with `lunch options:add <name> <category> [icon]`"
             );
+
+        const { weight, ...decision } = decide(options, history);
+        send(
+            `I think we should get ${
+                today.option.icon ? `${today.option.icon} ` : ''
+            }*${decision.name}*! (${weight}% chance)`
+        );
+        store.commit([channel, 'today', 'option'], decision);
     },
     "What's for lunch?"
 )
@@ -76,18 +93,35 @@ bot.cmd(
             checkStore(channel);
             const options = store.get([channel, 'options']);
 
-            if (options.length === 0)
-                return error('No options found :confused:');
+            if (options.length === 0) return error('No bueno :confused:');
+            const history = store.get([channel, 'history']);
+
+            const weightedOptions = options.map(option => ({
+                ...option,
+                weight: weight(option, history),
+            }));
+
+            const totalWeight = weightedOptions.reduce(
+                (total, option) => total + option.weight,
+                0
+            );
 
             send(
-                `All options:\n ${options
-                    .map(option => `*${option.name}* - ${option.category}`)
+                `All options:\n ${weightedOptions
+                    .map(
+                        option =>
+                            `${option.icon ? `${option.icon} ` : ''}*${
+                                option.name
+                            }* (${((option.weight / totalWeight) * 100).toFixed(
+                                2
+                            )}%) - ${option.category}`
+                    )
                     .join('\n')}`
             );
         }).desc('List all lunch options')
     )
     .sub(
-        cmd('options:add', ({ channel, send }, [name, category]) => {
+        cmd('options:add', ({ channel, send }, [name, category, icon]) => {
             const { options, categories } = store.get(
                 [channel],
                 defaultStore()
@@ -103,13 +137,14 @@ bot.cmd(
 
             store.commit(
                 [channel, 'options'],
-                [...options, { name, category }]
+                [...options, { name, category, icon }]
             );
-            send(`Added now ${category} lunch option: *${name}*`);
+            send(`Added new ${category} lunch option: *${name}* ${icon}`);
         })
             .desc('Add a new lunch option')
             .arg({ name: 'name', required: true })
             .arg({ name: 'category', required: true })
+            .arg({ name: 'icon' })
     )
     .sub(
         cmd('options:remove', ({ channel, send }, [name]) => {
@@ -123,7 +158,7 @@ bot.cmd(
                 return error(`Couldn't find lunch option *${name}*`);
             const option = options[index];
             options.splice(index, 1);
-            send(`Added now ${option.category} lunch option: *${option.name}`);
+            send(`Removed ${option.category} lunch option: *${option.name}`);
         })
             .desc('Remove a lunch option')
             .arg({ name: 'name', required: true })
@@ -240,9 +275,41 @@ bot.cmd(
         }).desc('Leave the lunchtrain :cry:')
     )
     .sub(
-        cmd('vote')
-            .desc("Vote on today's lunch option")
-            .arg({ name: 'choice', def: 'yes' })
+        cmd('reroll', ctx => {
+            const { channel, send, user } = ctx;
+            checkStore(channel);
+            const { participants, rerollVoters = [], option } = store.get([
+                channel,
+                'today',
+            ]);
+
+            if (!participants.find(id => id === user.id))
+                return error('You have to join the lunch train to vote');
+
+            if (rerollVoters.find(id => id === user.id))
+                return error("You've already voted to reroll");
+
+            send(`${tag(user)} voted to reroll today's lunch`);
+            store.commit(
+                [channel, 'today', 'rerollVoters'],
+                [...rerollVoters, user.id]
+            );
+
+            if (rerollVoters.length + 1 > participants.length / 2) {
+                send(
+                    `Looks like we\'re not getting ${option.name}, rerolling...`
+                );
+                const { today, history } = store.get([channel], defaultStore());
+                store.commit([channel, 'today'], {
+                    option: null,
+                    date: new Date().toDateString(),
+                    participants,
+                    successful: true,
+                });
+                store.commit([channel, 'history'], [...history, today]);
+                bot.passThrough('lunch')(ctx, []);
+            }
+        }).desc("Vote to reroll today's lunch option")
     )
     .sub(
         cmd('overrule')
