@@ -56,6 +56,8 @@ export default class MessageInterpreter {
             await this.bot.addChannel(newChannel);
         }
 
+        console.log(message);
+
         if (!message.text || this.isIgnoredType(type, subtype)) return;
 
         const user = this.bot.getUserById(message.user);

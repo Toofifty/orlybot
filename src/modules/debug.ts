@@ -2,6 +2,7 @@ import bot from 'core/bot';
 import { tag, ticks, pre } from 'core/util';
 import userdata from 'core/userdata';
 import Store from 'core/store';
+import { dateTZ } from 'core/date';
 
 bot.cmd('_users', ({ send }) => {
     send(JSON.stringify(bot.getUsers()));
@@ -38,4 +39,8 @@ bot.cmd('_kw', ({ send }) => {
 
 bot.cmd('_tok', ({ send }, args) => {
     send(args.map(ticks).join(' '));
+}).hide();
+
+bot.cmd('_time', ({ send }) => {
+    send(pre(dateTZ().toString()));
 }).hide();

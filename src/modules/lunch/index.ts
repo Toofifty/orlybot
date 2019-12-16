@@ -6,6 +6,7 @@ import { error } from 'core/user-error';
 import { tag } from 'core/util';
 import { LunchStore } from './types';
 import { decide, weight } from './decide';
+import { dateTZ } from 'core/date';
 
 /**
  * Lunch module
@@ -30,11 +31,11 @@ const LUNCH_TRAIN = ':steam_locomotive::railway_car::railway_car:';
 
 const checkStore = (channel: string) => {
     const { today, history } = store.get([channel], defaultStore());
-    if (today.date !== new Date().toDateString()) {
+    if (today.date !== dateTZ().toDateString()) {
         store.commit([channel, 'history'], [...history, today]);
         store.commit([channel, 'today'], {
             option: null,
-            date: new Date().toDateString(),
+            date: dateTZ().toDateString(),
             participants: [],
             successful: true,
         });
@@ -44,7 +45,7 @@ const checkStore = (channel: string) => {
 const defaultStore = (): LunchStore => ({
     today: {
         option: null,
-        date: new Date().toDateString(),
+        date: dateTZ().toDateString(),
         participants: [],
         successful: true,
     },
@@ -60,7 +61,7 @@ bot.kw("what's for lunch?", ctx => bot.passThrough('lunch')(ctx, []));
 
 bot.cmd(
     'lunch',
-    ({ channel, send, user }) => {
+    ({ channel, send }) => {
         checkStore(channel);
         const { today, options, history } = store.get(
             [channel],
@@ -305,7 +306,7 @@ bot.cmd(
                 const { today, history } = store.get([channel], defaultStore());
                 store.commit([channel, 'today'], {
                     option: null,
-                    date: new Date().toDateString(),
+                    date: dateTZ().toDateString(),
                     participants,
                     successful: true,
                 });
