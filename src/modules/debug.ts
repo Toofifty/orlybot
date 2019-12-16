@@ -28,10 +28,6 @@ bot.cmd('_priv', ({ user }) => {
     bot.priv(user, 'hello!');
 }).hide();
 
-bot.cmd('_eval', ({ send }, [code]) => {
-    send(pre(eval(code)));
-}).hide();
-
 bot.cmd('_kw', ({ send }) => {
     send(
         Object.keys(bot.getKeywords())

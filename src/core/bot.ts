@@ -154,6 +154,16 @@ export class Bot {
         return Object.keys(this.keywords);
     }
 
+    public allowedChannel(channel: string): boolean {
+        const allowed = (process.env.CHANNEL_LOCK || '').split(',');
+        return allowed.length === 0 || allowed.includes(channel);
+    }
+
+    public allowedCommand(command: string): boolean {
+        const blacklisted = (process.env.COMMAND_BLACKLIST || '').split(',');
+        return blacklisted.length === 0 || !blacklisted.includes(command);
+    }
+
     /**
      * Execute the given command
      */
@@ -162,6 +172,18 @@ export class Bot {
         context: CommandContext,
         args: string[]
     ): void {
+        if (!this.allowedChannel(context.channel)) {
+            return this.priv(
+                context.user,
+                `I'm not allowed to talk in #${context.channel} :(`
+            );
+        }
+        if (!this.allowedCommand(command)) {
+            return this.priv(
+                context.user,
+                `I'm sorry Dave, I'm afraid I can't do that. (the *${command}* command is disabled)`
+            );
+        }
         const cmd = this.commands[command];
         if (!cmd.hidden || this.admins.includes(context.user.id)) {
             return this.commands[command].run(context, args);
@@ -186,6 +208,12 @@ export class Bot {
         context: CommandContext,
         message: string
     ): void {
+        if (!this.allowedChannel(context.channel)) {
+            return this.priv(
+                context.user,
+                `I'm not allowed to talk in #${context.channel} :(`
+            );
+        }
         return this.keywords[keyword](context, message);
     }
 

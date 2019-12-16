@@ -61,6 +61,7 @@ bot.kw("what's for lunch?", ctx => bot.passThrough('lunch')(ctx, []));
 bot.cmd(
     'lunch',
     ({ channel, send, user }) => {
+        checkStore(channel);
         const { today, options, history } = store.get(
             [channel],
             defaultStore()
@@ -81,7 +82,7 @@ bot.cmd(
         const { weight, ...decision } = decide(options, history);
         send(
             `I think we should get ${
-                today.option.icon ? `${today.option.icon} ` : ''
+                decision.icon ? `${decision.icon} ` : ''
             }*${decision.name}*! (${weight}% chance)`
         );
         store.commit([channel, 'today', 'option'], decision);
@@ -96,10 +97,12 @@ bot.cmd(
             if (options.length === 0) return error('No bueno :confused:');
             const history = store.get([channel, 'history']);
 
-            const weightedOptions = options.map(option => ({
-                ...option,
-                weight: weight(option, history),
-            }));
+            const weightedOptions = options
+                .map(option => ({
+                    ...option,
+                    weight: weight(option, history),
+                }))
+                .sort((a, b) => (a.name > b.name ? 1 : -1));
 
             const totalWeight = weightedOptions.reduce(
                 (total, option) => total + option.weight,
@@ -139,7 +142,7 @@ bot.cmd(
                 [channel, 'options'],
                 [...options, { name, category, icon }]
             );
-            send(`Added new ${category} lunch option: *${name}* ${icon}`);
+            send(`Added new ${category} lunch option: *${name}* ${icon || ''}`);
         })
             .desc('Add a new lunch option')
             .arg({ name: 'name', required: true })

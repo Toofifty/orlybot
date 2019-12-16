@@ -8,6 +8,7 @@ bot.cmd('help', ({ send }, [cmd]) => {
     if (cmd) commands = pickBy(commands, key => key === cmd);
     send(
         Object.keys(commands)
+            .filter(command => bot.allowedCommand(command))
             .map(key => commands[key].help)
             .sort()
             .join('\n') || 'Nothing interesting happens'
