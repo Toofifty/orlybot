@@ -310,10 +310,41 @@ bot.cmd(
                     participants,
                     successful: true,
                 });
-                store.commit([channel, 'history'], [...history, today]);
+                store.commit(
+                    [channel, 'history'],
+                    [...history, { ...today, successful: false }]
+                );
                 bot.passThrough('lunch')(ctx, []);
             }
         }).desc("Vote to reroll today's lunch option")
+    )
+    .sub(
+        cmd('history', ({ send, channel }) => {
+            checkStore(channel);
+            const { today, history } = store.get([channel]);
+            let response = '*Recent lunch :sandwich: history*\n';
+
+            if (today) {
+                response += `Today - *${today.option.name}* ${today.option
+                    .icon || ''}\n`;
+            }
+
+            response += history
+                .map(
+                    visit =>
+                        `${visit.successful ? '' : '~'}${visit.date} - *${
+                            visit.option.name
+                        }* ${visit.option.icon || ''}${
+                            visit.successful ? '' : '~'
+                        }` +
+                        (visit.successful
+                            ? ` (${visit.participants.length} participants)`
+                            : ` (${visit.rerollVoters.length} votes to reroll)`)
+                )
+                .join('\n');
+
+            send(response);
+        }).desc('Get recent lunch history')
     )
     .sub(
         cmd('overrule')

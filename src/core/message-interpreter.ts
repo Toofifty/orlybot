@@ -56,7 +56,7 @@ export default class MessageInterpreter {
             await this.bot.addChannel(newChannel);
         }
 
-        console.log(message);
+        console.log(type, subtype, message);
 
         if (!message.text || this.isIgnoredType(type, subtype)) return;
 
