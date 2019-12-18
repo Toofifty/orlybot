@@ -324,7 +324,7 @@ bot.cmd(
             const { today, history } = store.get([channel]);
             let response = '*Recent lunch :sandwich: history*\n';
 
-            if (today) {
+            if (today && today.option) {
                 response += `Today - *${today.option.name}* ${today.option
                     .icon || ''}\n`;
             }
