@@ -55,6 +55,7 @@ const defaultStore = (): LunchStore => ({
 });
 
 bot.cmd('l', bot.passThrough('lunch'), 'Shortcut for `lunch`');
+bot.cmd('i', bot.passThrough('lunch'), 'Shortcut for `lunch`');
 bot.cmd('lunch?', bot.passThrough('lunch'), "What's for lunch?");
 bot.cmd('whats for lunch?', bot.passThrough('lunch'), "What's for lunch?");
 bot.kw("what's for lunch?", ctx => bot.passThrough('lunch')(ctx, []));
