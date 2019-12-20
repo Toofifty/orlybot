@@ -183,6 +183,9 @@ bot.cmd(
             checkStore(channel);
             const categories = store.get([channel, 'categories']);
 
+            if (name.toLowerCase() === 'salad')
+                return error('That category is not allowed. Yuck! :face_vomiting:');
+
             if (categories.includes(name.toLowerCase()))
                 return error('That category is already added');
 
