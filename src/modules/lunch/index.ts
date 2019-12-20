@@ -293,7 +293,7 @@ bot.cmd(
             if (rerollVoters.find(id => id === user.id))
                 return error("You've already voted to reroll");
 
-            send(`${tag(user)} voted to reroll today's lunch`);
+            send(`${tag(user)} voted to reroll today's lunch (${rerollVoters.length + 1}/${Math.floor(participants.length / 2) + 1})`);
             store.commit(
                 [channel, 'today', 'rerollVoters'],
                 [...rerollVoters, user.id]
