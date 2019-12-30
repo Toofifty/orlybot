@@ -65,6 +65,11 @@ export const randcolour = (): string =>
         .padStart(6, '0')}`;
 
 /**
+ * Choose a random value from an array
+ */
+export const choose = <T>(arr: T[]): T => arr[randint(arr.length)];
+
+/**
  * Wrap in backticks
  */
 export const ticks = (str: string): string => `\`${str}\``;

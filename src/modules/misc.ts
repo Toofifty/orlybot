@@ -1,7 +1,7 @@
 import * as request from 'request';
 import * as decode from 'decode-html';
 import bot from 'core/bot';
-import { pickBy, emoji, randint, tag } from 'core/util';
+import { pickBy, emoji, randint, tag, choose } from 'core/util';
 
 bot.cmd('help', ({ send }, [cmd]) => {
     let commands = bot.getCommands();
@@ -71,3 +71,7 @@ bot.cmd('roll', ({ send, user }, [argMax = '6']) => {
 bot.cmd('poker', ({ send }) => {
     send('lmao u wish');
 }).desc('Play a game of poker!');
+
+bot.kw('good bot', ({ send }) =>
+    send(choose(['Thanks :heart:', 'Cheers!', ':heart_eyes:', 'Thanks!']))
+);
