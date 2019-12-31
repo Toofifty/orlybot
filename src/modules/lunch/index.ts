@@ -98,6 +98,31 @@ bot.cmd(
     "What's for lunch?"
 )
     .sub(
+        cmd('override', ({ channel, send, user }, [name]) => {
+            checkStore(channel);
+            const { today, options } = store.get([channel], defaultStore());
+
+            if (!today.participants.includes(user.id))
+                return error(
+                    "Only passengers of the lunch train can override what's for lunch."
+                );
+
+            const lunch = options.find(option => option.name === name);
+
+            if (!lunch)
+                return error('That option does not exist :man-shrugging:');
+
+            send(
+                `Lunch overridden to ${lunch.icon ? `${lunch.icon} ` : ''}*${
+                    lunch.name
+                }*!`
+            );
+            store.commit([channel, 'today', 'option'], lunch);
+        })
+            .desc("Override today's lunch option")
+            .arg({ name: 'option-name', required: true })
+    )
+    .sub(
         cmd('options', ({ channel, send }) => {
             checkStore(channel);
             const options = store.get([channel, 'options']);
@@ -357,9 +382,4 @@ bot.cmd(
 
             send(response);
         }).desc('Get recent lunch history')
-    )
-    .sub(
-        cmd('overrule')
-            .desc("Overrule today's lunch option")
-            .arg({ name: 'option-name', required: true })
     );
