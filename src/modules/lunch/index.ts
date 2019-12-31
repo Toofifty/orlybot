@@ -62,12 +62,18 @@ bot.kw("what's for lunch?", ctx => bot.passThrough('lunch')(ctx, []));
 
 bot.cmd(
     'lunch',
-    ({ channel, send }) => {
+    ({ channel, send, user }) => {
         checkStore(channel);
         const { today, options, history } = store.get(
             [channel],
             defaultStore()
         );
+
+        // Check to see if they're part of the lunch train
+        if (!today.participants.includes(user.id))
+            return error(
+                "Only passengers of the lunch train can ask what's for lunch. Board the lunch train!"
+            );
 
         if (today.option)
             return send(
@@ -294,7 +300,12 @@ bot.cmd(
             if (rerollVoters.find(id => id === user.id))
                 return error("You've already voted to reroll");
 
-            send(`${tag(user)} voted to reroll today's lunch (${rerollVoters.length + 1}/${Math.floor(participants.length / 2) + 1})`);
+            send(
+                `${tag(
+                    user
+                )} voted to reroll today's lunch (${rerollVoters.length +
+                    1}/${Math.floor(participants.length / 2) + 1})`
+            );
             store.commit(
                 [channel, 'today', 'rerollVoters'],
                 [...rerollVoters, user.id]
