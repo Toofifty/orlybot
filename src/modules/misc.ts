@@ -72,6 +72,14 @@ bot.cmd('poker', ({ send }) => {
     send('lmao u wish');
 }).desc('Play a game of poker!');
 
+bot.cmd('_say', (_, [channel, ...message]) =>
+    bot.send(channel, message.join(''))
+)
+    .hide()
+    .desc('Say something')
+    .arg({ name: 'channel', required: true })
+    .arg({ name: 'message', required: true });
+
 bot.kw('good bot', ({ send }) =>
     send(choose(['Thanks :heart:', 'Cheers!', ':heart_eyes:', 'Thanks!']))
 );
