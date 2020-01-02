@@ -75,3 +75,19 @@ bot.cmd('poker', ({ send }) => {
 bot.kw('good bot', ({ send }) =>
     send(choose(['Thanks :heart:', 'Cheers!', ':heart_eyes:', 'Thanks!']))
 );
+
+bot.kw('bad bot', ({ send }) =>
+    send(
+        choose(["I'm doing the best I can :(", 'bad human', "I'm sorry :cry:"])
+    )
+);
+
+bot.kw('stupid bot', ({ send }) =>
+    send(
+        choose([
+            "I'm trying my best! Please visit this link to provide feedback: https://l.matho.me/mathobot/",
+            'stupid human',
+            "I didn't understand that, can you please try again",
+        ])
+    )
+);
