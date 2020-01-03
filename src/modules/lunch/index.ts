@@ -1,3 +1,4 @@
+import * as parse from 'parse-duration';
 import bot from 'core/bot';
 import Store from 'core/store';
 import { Dict } from 'core/types';
@@ -382,4 +383,38 @@ bot.cmd(
 
             send(response);
         }).desc('Get recent lunch history')
+    )
+    .sub(
+        cmd('depart', ({ send, channel, user }, [time = '5mins']) => {
+            checkStore(channel);
+            const { participants, option } = store.get([channel, 'today']);
+            const inSeconds = parse(time) / 1000;
+
+            if (!participants.find(id => id === user.id)) {
+                return error(
+                    "You can't tell the lunch train to depart if you're not in it :angry:"
+                );
+            }
+
+            if (!option) {
+                return error("We haven't even picked where we're going...");
+            }
+
+            const departTime = new Date();
+            departTime.setSeconds(departTime.getSeconds() + inSeconds);
+
+            send(`Noted! We'll leave at ${departTime.toLocaleTimeString()}`);
+
+            setTimeout(() => {
+                send(
+                    `Choo choo! The lunch train is departing! \n${LUNCH_TRAIN}${participants
+                        .map(id => tag(id))
+                        .join(':railway_car:')}:railway_car:`
+                );
+            }, inSeconds * 1000);
+
+            console.log(inSeconds);
+        })
+            .arg({ name: 'in', def: '5mins' })
+            .desc('Tell the lunch train to depart')
     );
