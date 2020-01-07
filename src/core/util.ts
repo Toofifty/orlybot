@@ -89,6 +89,8 @@ export const emoji = (str: string) => `:${str}:`;
  */
 export const last = <T>(arr: string | T[]): string | T => arr[arr.length - 1];
 
+const TOKEN_DELIMETERS = ["'", '"', '`', '“', '“'];
+
 /**
  * Tokenize a string, splitting on spaces but keeping
  * quoted items together
@@ -99,7 +101,7 @@ export const tokenize = (str: string): string[] =>
             if (
                 last(working) !== '\\' &&
                 !quote &&
-                (letter === "'" || letter === '"' || letter === '`')
+                TOKEN_DELIMETERS.includes(letter)
             ) {
                 return { quote: letter, tokens, working };
             }

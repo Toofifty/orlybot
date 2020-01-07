@@ -104,7 +104,10 @@ export default class MessageInterpreter {
 
                 const lcTerm = term.toLowerCase();
 
-                if (args.length > 0 && this.bot.hasCommand(args[0])) {
+                if (
+                    args.length > 0 &&
+                    this.bot.hasCommand(args[0].toLowerCase())
+                ) {
                     await this.bot.executeCommand(args.shift(), context, args);
                 } else {
                     await Promise.all(
