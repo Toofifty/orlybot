@@ -60,7 +60,13 @@ export default class MessageInterpreter {
 
         if (!message.text || this.isIgnoredType(type, subtype)) return;
 
-        const user = this.bot.getUserById(message.user);
+        let user = this.bot.getUserById(message.user);
+
+        const psuedoMatches = message.text.match(/\s+as\s+<@(.+)>/);
+        if (psuedoMatches) {
+            user = this.bot.getUserById(psuedoMatches[1]);
+            message.text = message.text.replace(psuedoMatches[0], '');
+        }
         const channel = this.bot.getChannelName(message.channel);
         const terms = message.text.split('&amp;&amp;');
 
