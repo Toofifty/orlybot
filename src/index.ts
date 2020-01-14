@@ -1,5 +1,6 @@
 import 'dotenv/config';
 
+import 'modules/airquality';
 import 'modules/blackjack';
 import 'modules/cards';
 // import 'modules/cleverbot';
